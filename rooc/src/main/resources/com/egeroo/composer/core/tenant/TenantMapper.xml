@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.egeroo.roocvthree.core.tenant.TenantMapper">
+
+<resultMap type="com.egeroo.roocvthree.core.tenant.TenantConnection" id="tenantConnectionMap">
+	<result column="identifier" property="identifier"/>  
+	<result column="schema_server" property="schema_server"/>  
+	<result column="schema_name" property="schema_name"/>  
+ 	<result column="schema_server_port" property="schema_server_port"/>  
+ 	<result column="schema_username" property="schema_username"/>  
+ 	<result column="schema_password" property="schema_password"/>  
+</resultMap>  
+
+
+<resultMap type="com.egeroo.roocvthree.core.tenant.Tenant" id="tenantMap">
+	<result column="id" property="id"/>  
+	<result column="identifier" property="identifier"/>  
+	<result column="name" property="name"/>  
+ 	<result column="timezone_id" property="timezoneId"/>  
+ 	<result column="created_date" property="createdDate"/>  
+</resultMap>  
+
+    <select id="getTenantList" resultMap="tenantConnectionMap">
+		select t1.identifier,t2.schema_server,t2.schema_name, t2.schema_server_port,t2.schema_username,t2.schema_password from tenants t1 
+		inner join tenant_server_connections t2 on t2.id = t1.oltp_id
+    </select>
+    
+    <select id="getTenant" resultMap="tenantMap">
+		select * from tenants where identifier = #{identifier}
+    </select>
+    
+</mapper>
