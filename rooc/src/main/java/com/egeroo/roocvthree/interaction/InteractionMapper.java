@@ -1,15 +1,11 @@
 package com.egeroo.roocvthree.interaction;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
-
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectKey;
-
-
-
-
 
 
 
@@ -44,7 +40,7 @@ public interface InteractionMapper {
 			 " ORDER BY a.interactionid;")
    public List<Interaction> findAlljoin();
 	
-	@Select("SELECT a.*,b.question as intentname,u.username as username,coalesce(ch.name, '') as customername,intict.question as answerintentname " +
+	@Select("SELECT a.*,b.question as intentname,u.username as username,coalesce(ch.name, '') as customerame,intict.question as answerintentname " +
 			 " FROM tr_eng_interaction a " +
 			 " left join ms_eng_intent b \n" + 
 			 " on a.expectedintentid=b.intentid\n" + 
@@ -57,7 +53,21 @@ public interface InteractionMapper {
 			 " WHERE a.istrain=0 AND a.expectedintentid > 0 " +
 			 " ORDER BY a.interactionid;")
 	public List<Interaction> findAlljointrain();
-	
+
+	@Select("SELECT a.interactionid \"interactionId\", a.createdtime \"createdTime\", \r\n" + 
+			"a.question , \r\n" + 
+			"b.question as intent, \r\n" + 
+			"a.expectedintentid \"expectedIntent\", \r\n" + 
+			"a.confidencelevel confidence   \r\n" + 
+			"FROM tr_eng_interaction a   \r\n" + 
+			"left join ms_eng_intent b on a.expectedintentid=b.intentid   \r\n" + 
+			"left join ms_app_user u on a.createdby=u.userid   \r\n" + 
+			"left join channel.user ch on a.customerchannelid=ch.id  \r\n" + 
+			"left join ms_eng_intent intict on a.answerintentid=intict.iretquestionid  \r\n" + 
+			"WHERE a.active=1 and a.istrain=0 AND a.expectedintentid > 0 \r\n" + 
+			"ORDER BY a.interactionid;")
+	public List<LinkedHashMap> findAlljointrainv3();
+
 	@Select("SELECT count(a.*) as countalldata " +
 			 " FROM tr_eng_interaction a " +
 			 " left join ms_eng_intent b \n" + 
@@ -87,6 +97,21 @@ public interface InteractionMapper {
 			 " ORDER BY a.interactionid;")
   public List<InteractionChathistory> findAlljoindate(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
 	
+	@Select("SELECT a.chatid \"chatId\",a.roomid \"roomId\",a.interactionid \"interactionId\", \r\n" + 
+			"a.expectedintentid \"expectedIntent\",a.question question, \r\n" + 
+			"intict.question \"intentAnswer\",a.answerby \"answerBy\", \r\n" + 
+			"a.channel,a.confidencelevel confidence,a.minconfidence \"minConfidence\", \r\n" + 
+			"coalesce(ch.name, '') as \"customerName\", \r\n" + 
+			"a.createdtime createdTime \r\n" + 
+			"FROM tr_eng_interaction a \r\n" + 
+			"left join ms_eng_intent b on a.expectedintentid=b.intentid \r\n" + 
+			"left join ms_app_user u on a.createdby=u.userid \r\n" + 
+			"left join channel.user ch on a.customerchannelid=ch.id \r\n" + 
+			"left join ms_eng_intent intict on a.answerintentid=intict.iretquestionid \r\n" + 
+			"where ismanual=0 and a.createdtime between #{datefrom} and #{dateto}    \r\n" + 
+			"ORDER BY a.interactionid;")
+  public List<LinkedHashMap> findAlljoindatev3(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+
 	@Select("SELECT a.*,b.question as intentname,u.username as username,coalesce(ch.name, '') as customername,intict.question as answerintentname "
 			+ " ,coalesce(ch.anyid, '')  as anyid " +
 			 " FROM tr_eng_interaction a " +

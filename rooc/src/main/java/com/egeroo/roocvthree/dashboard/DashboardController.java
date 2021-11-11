@@ -3,6 +3,7 @@ package com.egeroo.roocvthree.dashboard;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,6 +33,8 @@ public class DashboardController {
 
 	@Autowired
 	private MonitorService mservice;
+	
+	
 	
 	@RequestMapping(method=RequestMethod.GET,value="/listdbuser")							
 	public DashboardUser getDbuser(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
@@ -510,6 +513,23 @@ public class DashboardController {
 	    System.out.println("==== FINISH SETTING DATA ====");
 		
 		return response;
+	}
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public Dashboardv3 getDballV3(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
+		
+		if(datefrom == null)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date from in request url");
+		}
+		else if(dateto == null)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date to in request url");
+		}
+		
+		
+		return service.getAllDashboard(headers.get("tenantID").get(0), datefrom, dateto, mservice);
+		
 	}
 
 }

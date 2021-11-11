@@ -1,6 +1,10 @@
 package com.egeroo.roocvthree.intent;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -13,6 +17,23 @@ public class IntentService {
 	public List<Intent> getIndex(String tenant) {
 		IntentMapper appMapper = new IntentMapperImpl(tenant);
 		return appMapper.findAll();	 
+	}
+	
+	public List<Map> getIndexV3(String tenant, boolean lite) {
+		IntentMapper appMapper = new IntentMapperImpl(tenant);
+		int active = 0;
+		if(lite) {active=1;} 
+		List<Intent> intentList = appMapper.findAllV3(active);
+		List<Map> result = new ArrayList<Map>();
+		for (Intent intent : intentList) {
+			Map inputMap = new LinkedHashMap();
+			int intentId = intent.getIntentid();
+			String intentName = intent.getQuestion();
+			inputMap.put("intentId", intentId);
+			inputMap.put("intentName", intentName);
+			result.add(inputMap);
+		}
+		return result;	 
 	}
 	
 	public List<Intent> getExtractintent(String tenant) {

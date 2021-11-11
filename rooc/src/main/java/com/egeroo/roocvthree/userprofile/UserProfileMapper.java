@@ -1,5 +1,7 @@
 package com.egeroo.roocvthree.userprofile;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Select;
@@ -23,6 +25,16 @@ public interface UserProfileMapper {
 			+ " ORDER BY userprofileid asc")
     public List<UserProfileIndex> findAll();
 	
+	@Select("select p2.\"name\" \"createdBy\",p.createdtime \"createdTime\",p.isactive \"isActive\",\r\n" + 
+			"p.userid \"userId\",p.\"name\",p.roleid \"roleId\",r.rolename \"roleName\",p.username \"userName\"\r\n" + 
+			"from ms_app_userprofile p \r\n" + 
+			"left join ms_app_userrole r\r\n" + 
+			"on p.roleid=r.roleid\r\n" + 
+			"left join ms_app_userprofile p2 on p.createdby = p2.userid\r\n" + 
+			"where p.\"source\"='rooc'\r\n" + 
+			"ORDER BY p.userprofileid asc")
+    public List<LinkedHashMap> findAllv3();
+
 	@Select("select "
 			+ " userprofileid,userid,roleid,companyid,username,name,address,emailaddress\n" + 
 			" ,createdby,updatedby,createdtime,updatedtime,userchannelid\n" + 
@@ -45,7 +57,12 @@ public interface UserProfileMapper {
 			" ,domain_id,job_title,company_code,kanwil_name,branch_name,kcp_name,whatsappnum,isactive,source,department,area "
 			+ "  FROM ms_app_userprofile WHERE userid = #{userid} limit 1")
     public UserProfile findByuserid(Integer userid);
-	
+
+	@Select("SELECT  "
+			+ " name,roleid,userid,username"
+			+ "  FROM ms_app_userprofile WHERE userid = #{userid} limit 1")
+    public HashMap findByuseridv3(Integer userid);
+
 	@Select("SELECT  "
 			+ " userprofileid,userid,roleid,companyid,username,name,address,emailaddress,password \n" + 
 			" ,createdby,updatedby,createdtime,updatedtime,userchannelid\n" + 

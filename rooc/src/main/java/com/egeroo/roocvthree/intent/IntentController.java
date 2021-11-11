@@ -5,6 +5,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.egeroo.roocvthree.core.curl.HttpPostReq;
@@ -50,6 +52,12 @@ public class IntentController {
 	@RequestMapping(method=RequestMethod.GET,value="/index")
 	public List<Intent> getIndex(@RequestHeader HttpHeaders headers) {
 		List<Intent> result = service.getIndex(headers.get("tenantID").get(0));
+		return result;
+	}
+
+	@RequestMapping(method=RequestMethod.GET)
+	public List<Map> getIndexV3(@RequestHeader HttpHeaders headers,@RequestParam("lite") boolean lite) {
+		List<Map> result = service.getIndexV3(headers.get("tenantID").get(0), lite);
 		return result;
 	}
 	

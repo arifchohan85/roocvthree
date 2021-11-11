@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import com.egeroo.roocvthree.core.error.CoreException;
 import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
 import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
+import com.egeroo.roocvthree.userprofile.UserProfileService;
 
 
 @RestController
@@ -35,8 +37,8 @@ public class UserController {
 	private int ECID = 1;
 	HttpPostReq hpr = new HttpPostReq();
 	
-	@Autowired
-    private UserService service;
+	@Autowired private UserService service;
+	@Autowired private UserProfileService profService;
 	
 	//@Autowired
     EngineCredentialService ecservice = new EngineCredentialService();
@@ -46,13 +48,32 @@ public class UserController {
 		List<User> result = service.getIndex(headers.get("tenantID").get(0));
 		return result;
 	}
-	
+
 	@RequestMapping(method=RequestMethod.GET,value="/view")
 	public User getView(@RequestHeader HttpHeaders headers,int userid) {
 		User result = service.getView(headers.get("tenantID").get(0),userid);
 		return result;
 	}
 	
+	@RequestMapping(method=RequestMethod.GET)
+	public HashMap getViewprofilev3(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
+		
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+		
+		int userid = trb.Parseuserid(token);
+		HashMap result = profService.getViewbyuseridv3(headers.get("tenantID").get(0),userid);
+		return result;
+		
+	}
 	
 	@RequestMapping(method=RequestMethod.POST,value="/create")
 	public String getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody User obj) {

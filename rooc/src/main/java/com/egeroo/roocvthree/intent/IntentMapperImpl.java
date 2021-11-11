@@ -68,6 +68,24 @@ public class IntentMapperImpl extends BaseDAO implements IntentMapper{
 	}
 
 	@Override
+	public List<Intent> findAllV3(int active) {
+		System.out.println("int List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<Intent> ec = null;
+		try{
+			IntentMapper ecMapper = sqlSession.getMapper(IntentMapper.class);
+			ec = ecMapper.findAllV3(active);
+			log.info("getint data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get dir data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
+
+	@Override
 	public List<Intent> findIntent() {
 		System.out.println("dir List : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
@@ -2845,5 +2863,4 @@ public class IntentMapperImpl extends BaseDAO implements IntentMapper{
 		return prettyJsonString;
 	}
 
-	
 }

@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -66,10 +68,21 @@ public class UserProfileController {
     Util util= new Util();
     
     
-	
+	@RequestMapping(method=RequestMethod.GET,value="/role")
+	public List<Map> getRolev3(@RequestHeader HttpHeaders headers) {
+		List<Map> result = urservice.getIndexv3(headers.get("tenantID").get(0));
+		return result;
+	}
+
 	@RequestMapping(method=RequestMethod.GET,value="/index")
 	public List<UserProfileIndex> getIndex(@RequestHeader HttpHeaders headers) {
 		List<UserProfileIndex> result = service.getIndex(headers.get("tenantID").get(0));
+		return result;
+	}
+
+	@RequestMapping(method=RequestMethod.GET)
+	public List<LinkedHashMap> getIndexv3(@RequestHeader HttpHeaders headers) {
+		List<LinkedHashMap> result = service.getIndexv3(headers.get("tenantID").get(0));
 		return result;
 	}
 	
@@ -209,8 +222,7 @@ public class UserProfileController {
 		return result;
 		
 	}
-	
-	
+		
 	@RequestMapping(method=RequestMethod.POST,value="/create")
 	public UserProfile getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody UserProfile obj) {
 		//String retMessage = "";

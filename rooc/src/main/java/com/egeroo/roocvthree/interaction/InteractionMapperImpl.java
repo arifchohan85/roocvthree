@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -87,7 +88,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		}
 		return ec;
 	}
-
+	
 	@Override
 	public List<Interaction> findInteraction() {
 		System.out.println("dir List : " + this.tenantIdentifier);
@@ -2249,6 +2250,24 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	}
 
 	@Override
+	public List<LinkedHashMap> findAlljointrainv3() {
+		System.out.println("int List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<LinkedHashMap> ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findAlljointrainv3();
+			log.info("getint data LinkedHashMap");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findAlljoin data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
+
+	@Override
 	public Interaction findCountjointrain() {
 		System.out.println("findCountjointrain List : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
@@ -3066,6 +3085,26 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			sqlSession.close();
 		}
 		return (Interaction) ec;
+	}
+
+
+	@Override
+	public List<LinkedHashMap> findAlljoindatev3(Date datefrom, Date dateto) {
+		System.out.println("int List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<LinkedHashMap> ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findAlljoindatev3(datefrom, dateto);
+			log.info("getint data v3");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findAlljoindatev3");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		
+		return ec;
 	}
 	
 }

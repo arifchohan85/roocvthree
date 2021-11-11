@@ -381,6 +381,233 @@ public interface DirectoryMapper {
 			" ; " + 
 			" ")
     public List<DirectoryIntent> findAlldirectoryintent();
+
+	/*@Select(" WITH RECURSIVE subordinates AS (\n" +
+			" SELECT\n" +
+			" (select name from ms_eng_directory d where d.directoryid=parentid) as parent,\n" +
+			" parentid as parentId,\n" +
+			" directoryid as id,\n" +
+			" CASE \n" +
+			" when faq is not null\n" +
+			" then faq::integer\n" +
+			" when faq is null or faq =''\n" +
+			" then directoryid\n" +
+			" end intentid,\n" +
+			" name as text,\n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=par.parentid) as grandparentid,\n" +
+			" array(select name from ms_eng_directory d where d.parentid=parentid)::text as childdir\n" +
+			" FROM \n" +
+			" ms_eng_directory par \n" +
+			" WHERE\n" +
+			" (parentid is null or parentid<=0)\n" +
+			" UNION\n" +
+			" SELECT \n" +
+			" (select name from ms_eng_directory d1 where d1.directoryid=e.parentid) as parent,\n" +
+			" e.parentid as parentId,\n" +
+			" e.directoryid as id,\n" +
+			" CASE \n" +
+			" when e.faq is not null\n" +
+			" then e.faq::integer\n" +
+			" when e.faq is null or e.faq =''\n" +
+			" then e.directoryid\n" +
+			" end intentid,\n" +
+			" e.name as text, \n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=e.parentid)  as grandparentid,\n" +
+			" array(select name from ms_eng_directory d1 where d1.parentid=e.parentid)::text as childdir\n" +
+			" FROM\n" +
+			" ms_eng_directory e \n" +
+			" INNER JOIN subordinates s ON s.id = e.parentId\n" +
+			" ) SELECT \n" +
+			" *\n" +
+			" FROM\n" +
+			" subordinates \n" +
+			" union all \n" +
+			" select \n" +
+			" (select name from ms_eng_directory d2 where d2.directoryid=b.directoryid) as parent,\n" +
+			" b.directoryid as parentId,\n" +
+			" b.intentid as id,\n" +
+			" b.intentid as intentid,\n" +
+			" b.question as text, \n" +
+			" (select parentid from ms_eng_directory engd where engd.directoryid=b.directoryid)  as grandparentid,\n" +
+			" array(select name from ms_eng_directory d2 where d2.parentid=b.directoryid)::text as childdir\n" +
+			" from ms_eng_intent b\n" +
+			" inner join subordinates so \n" +
+			" on so.id= b.directoryid\n" +
+			" where directoryid in (select ss.id from subordinates ss) \n" +
+			" order by id,parentId\n" +
+			" ;  " +
+
+			" ")*/
+	/*@Select(" WITH RECURSIVE subordinates AS (\n" +
+			" SELECT\n" +
+			" (select name from ms_eng_directory d where d.directoryid=parentid) as parent,\n" +
+			" parentid as parentId,\n" +
+			" directoryid as id,\n" +
+			" CASE \n" +
+			" when faq is not null\n" +
+			" then faq::integer\n" +
+			" when faq is null or faq =''\n" +
+			" then directoryid\n" +
+			" end intentid,\n" +
+			" name as text,\n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=par.parentid) as grandparentid,\n" +
+			" array(select name from ms_eng_directory d where d.parentid=parentid)::text as child,\n" +
+			" faq\n" +
+			" FROM \n" +
+			" ms_eng_directory par \n" +
+			" WHERE\n" +
+			" (parentid is null or parentid<=0)\n" +
+			" UNION\n" +
+			" SELECT \n" +
+			" (select name from ms_eng_directory d1 where d1.directoryid=e.parentid) as parent,\n" +
+			" e.parentid as parentId,\n" +
+			" e.directoryid as id,\n" +
+			" CASE \n" +
+			" when e.faq is not null\n" +
+			" then e.faq::integer\n" +
+			" when e.faq is null or e.faq =''\n" +
+			" then e.directoryid\n" +
+			" end intentid,\n" +
+			" e.name as text, \n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=e.parentid)  as grandparentid,\n" +
+			" array(select name from ms_eng_directory d1 where d1.parentid=e.parentid)::text as child,\n" +
+			" e.faq\n" +
+			" FROM\n" +
+			" ms_eng_directory e \n" +
+			" INNER JOIN subordinates s ON s.id = e.parentId\n" +
+			"\n" +
+			" ) ,x AS\n" +
+			" (\n" +
+			"    -- anchor:\n" +
+			"    SELECT directoryid, \n" +
+			" name,\n" +
+			" CAST(' # ' As varchar(1000)) As path,\n" +
+			" parentid--, [level] = 0\n" +
+			"    FROM ms_eng_directory WHERE (parentid IS NULL OR parentid=0)\n" +
+			"    UNION ALL\n" +
+			"    -- recursive:\n" +
+			"    SELECT t.directoryid, \n" +
+			" t.name, \n" +
+			" CAST(x.path || '/' || x.name As varchar(1000)) As path,\n" +
+			" t.parentid--, [level] = x.[level] + 1\n" +
+			"    FROM ms_eng_directory AS t  INNER JOIN x\n" +
+			"    ON t.parentid = x.directoryid\n" +
+			" \n" +
+			" )\n" +
+			" SELECT \n" +
+			" sod.*\n" +
+			" --,x.path\n" +
+			" ,replace(replace(path,' # /',''),' # ','') as path\n" +
+			" FROM\n" +
+			" subordinates sod\n" +
+			" full join x\n" +
+			" on sod.id=x.directoryid\n" +
+			" where sod.faq is null\n" +
+			" union all \n" +
+			" select \n" +
+			" (select name from ms_eng_directory d2 where d2.directoryid=b.directoryid) as parent,\n" +
+			" b.directoryid as parentId,\n" +
+			" b.intentid as id,\n" +
+			" b.intentid as intentid,\n" +
+			" b.question as text, \n" +
+			" (select parentid from ms_eng_directory engd where engd.directoryid=b.directoryid)  as grandparentid,\n" +
+			" array(select name from ms_eng_directory d2 where d2.parentid=b.directoryid)::text as child,\n" +
+			" b.intentid::text as faq,\n" +
+			" replace(replace(path,' # /',''),' # ','') as directorymap\n" +
+			" from ms_eng_intent b\n" +
+			" inner join subordinates so \n" +
+			" on so.id= b.directoryid\n" +
+			" full join x\n" +
+			" on so.id=x.directoryid\n" +
+			" where b.directoryid in (select ss.id from subordinates ss) \n" +
+			" order by id,parentId\n" +
+			" ;  ")
+	public List<DirectoryIntentv3> findAlldirectoryintentv3();*/
+	@Select(" WITH RECURSIVE subordinates AS (\n" +
+			" SELECT\n" +
+			" (select name from ms_eng_directory d where d.directoryid=parentid) as parent,\n" +
+			" parentid as parentId,\n" +
+			" directoryid as id,\n" +
+			" CASE \n" +
+			" when faq is not null\n" +
+			" then faq::integer\n" +
+			" when faq is null or faq =''\n" +
+			" then directoryid\n" +
+			" end intentid,\n" +
+			" name as text,\n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=par.parentid) as grandparentid,\n" +
+			" replace(replace(array(select name::text from ms_eng_directory d where d.parentid=parentid)::text,'{','['),'}',']') as child,\n" +
+			" faq\n" +
+			" FROM \n" +
+			" ms_eng_directory par \n" +
+			" WHERE\n" +
+			" (parentid is null or parentid<=0)\n" +
+			" UNION\n" +
+			" SELECT \n" +
+			" (select name from ms_eng_directory d1 where d1.directoryid=e.parentid) as parent,\n" +
+			" e.parentid as parentId,\n" +
+			" e.directoryid as id,\n" +
+			" CASE \n" +
+			" when e.faq is not null\n" +
+			" then e.faq::integer\n" +
+			" when e.faq is null or e.faq =''\n" +
+			" then e.directoryid\n" +
+			" end intentid,\n" +
+			" e.name as text, \n" +
+			" (select engd.parentid from ms_eng_directory engd where engd.directoryid=e.parentid)  as grandparentid,\n" +
+			" replace(replace(array(select name::text from ms_eng_directory d1 where d1.parentid=e.parentid)::text,'{','['),'}',']') as child,\n" +
+			" e.faq\n" +
+			" FROM\n" +
+			" ms_eng_directory e \n" +
+			" INNER JOIN subordinates s ON s.id = e.parentId\n" +
+			" \n" +
+			" ) ,x AS\n" +
+			"( \n" +
+			"    -- anchor:\n" +
+			"    SELECT directoryid, \n" +
+			" name,\n" +
+			" CAST(' # ' As varchar(1000)) As path,\n" +
+			" parentid--, [level] = 0\n" +
+			"    FROM ms_eng_directory WHERE (parentid IS NULL OR parentid=0)\n" +
+			"    UNION ALL\n" +
+			"    -- recursive:\n" +
+			"    SELECT t.directoryid, \n" +
+			" t.name, \n" +
+			" CAST(x.path || '/' || x.name As varchar(1000)) As path,\n" +
+			" t.parentid--, [level] = x.[level] + 1\n" +
+			"    FROM ms_eng_directory AS t  INNER JOIN x\n" +
+			"    ON t.parentid = x.directoryid\n" +
+			" \n" +
+			" )\n" +
+			" SELECT \n" +
+			" sod.*\n" +
+			" --,x.path\n" +
+			" ,replace(replace(path,' # /',''),' # ','') as path\n" +
+			" FROM\n" +
+			" subordinates sod\n" +
+			" full join x\n" +
+			" on sod.id=x.directoryid\n" +
+			" where sod.faq is null\n" +
+			" union all \n" +
+			" select \n" +
+			" (select name from ms_eng_directory d2 where d2.directoryid=b.directoryid) as parent,\n" +
+			" b.directoryid as parentId,\n" +
+			" b.intentid as id,\n" +
+			" b.intentid as intentid,\n" +
+			" b.question as text, \n" +
+			" (select parentid from ms_eng_directory engd where engd.directoryid=b.directoryid)  as grandparentid,\n" +
+			" replace(replace(array(select name::text from ms_eng_directory d2 where d2.parentid=b.directoryid)::text,'{','['),'}',']') as child,\n" +
+			" b.intentid::text as faq,\n" +
+			" replace(replace(path,' # /',''),' # ','') as directorymap\n" +
+			" from ms_eng_intent b\n" +
+			" inner join subordinates so \n" +
+			" on so.id= b.directoryid\n" +
+			" full join x\n" +
+			" on so.id=x.directoryid\n" +
+			" where b.directoryid in (select ss.id from subordinates ss) \n" +
+			" order by id,parentId\n" +
+			" ;  ")
+	public List<DirectoryIntentv3> findAlldirectoryintentv3();
 	
 	@SelectKey(statement = "currval('directoryid')", keyProperty = "directoryid", before = true , resultType = int.class)
 	@Select("Insert into ms_eng_directory(parentid,categorymode,name,description,question,answer,faq"

@@ -240,7 +240,7 @@ public class LoginFormController{
 		
 		//ac = "{ 'channelip' : '"+ result.getChannelapi() +"'  , 'userchnltoken' : '"+ uToken +"'  , 'isValid' : true }";
 		ac = "{ 'channelip' : '"+ serverChannel +"'  , 'userchnltoken' : '"+ uToken +"'  , 'isValid' : true }";
-		
+//		ac = "{ 'channelUrl' : '"+ serverChannel +"'  , 'channelToken' : '"+ uToken +"' }";
 		
 		JsonElement je = jp.parse(ac);
 		prettyJsonString = gson.toJson(je);
@@ -248,8 +248,54 @@ public class LoginFormController{
 		return prettyJsonString;
 		
 	}
-	
-    
+
+	@RequestMapping(method=RequestMethod.GET,value="/dogetchanneltoken")
+	public String getChanneltokenget(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
+		String prettyJsonString ="";
+		String ac="";
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		JsonParser jp = new JsonParser();
+		EngineCredential result = new EngineCredential();
+
+
+		result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		String postret = "";
+
+
+		String token ="";
+		boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+
+		Claims parsejwt = jwtutils.parseJWT(token);
+		//int clmid = Integer.parseInt(parsejwt.getId());
+		String uname = parsejwt.getSubject();
+
+
+		UserSource ussrc =  new UserSource();
+		ussrc = usservice.findByAuthkey(headers.get("tenantID").get(0),token);
+
+		if (ussrc == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+
+		//ac = "{ 'channelip' : '"+ result.getChannelapi() +"'  , 'userchnltoken' : '"+ uToken +"'  , 'isValid' : true }";
+		ac = "{  'userchnltoken' : '"+ ussrc.getChanneltoken() +"'  }";
+//		ac = "{ 'channelUrl' : '"+ serverChannel +"'  , 'channelToken' : '"+ uToken +"' }";
+
+		JsonElement je = jp.parse(ac);
+		prettyJsonString = gson.toJson(je);
+
+		return prettyJsonString;
+
+	}
 
     @RequestMapping(method=RequestMethod.GET,value="/dochannellogin")
     public String getChannellogin(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
@@ -778,7 +824,11 @@ public class LoginFormController{
 		String ac="";
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		JsonParser jp = new JsonParser();
+
 		EngineCredential result = new EngineCredential();
+		//result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		String postret = "";
+
 
 
 		boolean isEmptyusername = obj.getUsername() == null || obj.getUsername().trim().length() == 0;
@@ -802,6 +852,74 @@ public class LoginFormController{
 		if (result == null) {
 			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
 		}
+
+		JSONObject pdcomposer = new JSONObject();
+
+		pdcomposer.put("username", result.getChannelusername());
+		pdcomposer.put("password", result.getChannelPassword());
+
+		String chnlToken ="";
+
+		if (result == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+
+		String serverChannel ="";
+
+
+		try {
+			postret = hpr.setPostData(result.getChannelapi()+"/auth/login",pdcomposer);
+
+			String jsonString = postret;
+			JSONObject jsonObject;
+
+			jsonObject = new JSONObject(jsonString);
+
+			if(!jsonObject.has("token"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(jsonObject.getString("token") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(!jsonObject.has("server"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+			if(jsonObject.getString("server") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+
+			chnlToken = jsonObject.getString("token");
+			serverChannel = jsonObject.getString("server");
+			System.out.println("channel token is :" + jsonObject.getString("token"));
+			System.out.println("server is :" + jsonObject.getString("server"));
+
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.out.println("channel post return is : "+ postret);
+
+		System.out.println("Channel Token is : " +chnlToken);
+		System.out.println("server channel is : " +serverChannel);
 
 		//obj.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(obj.getPassword())));
 
@@ -836,15 +954,11 @@ public class LoginFormController{
 			ussrc.setExpiredate(exp);
 			ussrc.setLocaladdr(request.getLocalAddr());
 			ussrc.setRemoteaddr(request.getRemoteAddr());
+			ussrc.setChanneltoken(chnlToken);
 
 			usservice.getCreate(headers.get("tenantID").get(0), ussrc);
 
-			JSONObject pdcomposer = new JSONObject();
 
-			pdcomposer.put("username", result.getChannelusername());
-			pdcomposer.put("password", result.getChannelPassword());
-
-			String chnlToken ="";
 
 
 			String uToken = "null";
@@ -946,10 +1060,10 @@ public class LoginFormController{
 			}
 
 
-			response.setDataMenu(resultmenu);
+			//response.setDataMenu(resultmenu);
 
 
-			ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true  , 'errorMessage' : '"+errorMessage+"' }";
+			ac = "{ 'userchnltoken' : '"+ uToken +"' , 'access_token' : '" + access_token + "' , 'isValid' : true  , 'errorMessage' : '"+errorMessage+"' }";
 			JsonElement je = jp.parse(ac);
 			prettyJsonString = gson.toJson(je);
 
@@ -972,6 +1086,8 @@ public class LoginFormController{
 
 		//service.getCreate(headers.get("tenantID").get(0),obj);
 	}
+
+
 
 
 	@RequestMapping(method=RequestMethod.POST,value="/dologinresetpassword")
@@ -2980,5 +3096,557 @@ public class LoginFormController{
 
         return node;
     }*/
+
+
+	/*
+		V3 Start Here
+	*/
+
+	@RequestMapping(method=RequestMethod.POST,value="/")
+	public LoginFormData getCreatev3(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody LoginForm obj) {
+		String prettyJsonString ="";
+		String ac="";
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		JsonParser jp = new JsonParser();
+
+		EngineCredential result = new EngineCredential();
+		//result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		String postret = "";
+
+
+
+		boolean isEmptyusername = obj.getUsername() == null || obj.getUsername().trim().length() == 0;
+		boolean isEmptypassword = obj.getPassword() == null || obj.getPassword().trim().length() == 0;
+
+		if(isEmptyusername)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Username cannot be empty");
+		}
+
+		if(isEmptypassword)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Password cannot be empty");
+		}
+
+
+		obj.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(obj.getPassword())));
+
+
+		result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		if (result == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+
+
+		JSONObject pdcomposer = new JSONObject();
+
+		pdcomposer.put("username", result.getChannelusername());
+		pdcomposer.put("password", result.getChannelPassword());
+
+		String chnlToken ="";
+
+		if (result == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+
+		String serverChannel ="";
+
+
+		try {
+			postret = hpr.setPostData(result.getChannelapi()+"/auth/login",pdcomposer);
+
+			String jsonString = postret;
+			JSONObject jsonObject;
+
+			jsonObject = new JSONObject(jsonString);
+
+			if(!jsonObject.has("token"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(jsonObject.getString("token") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(!jsonObject.has("server"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+			if(jsonObject.getString("server") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+
+			chnlToken = jsonObject.getString("token");
+			serverChannel = jsonObject.getString("server");
+			System.out.println("channel token is :" + jsonObject.getString("token"));
+			System.out.println("server is :" + jsonObject.getString("server"));
+
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.out.println("channel post return is : "+ postret);
+
+		System.out.println("Channel Token is : " +chnlToken);
+		System.out.println("server channel is : " +serverChannel);
+
+		//obj.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(obj.getPassword())));
+
+		if (service.isUserExist(headers.get("tenantID").get(0),obj)) {
+			LoginForm lgf = service.findByUsernameandPassword(headers.get("tenantID").get(0), obj.getUsername(), obj.getPassword());
+
+			String browserType = headers.get("User-Agent").get(0);
+
+			String keyName = result.getRootcategory();
+
+			//String access_token = jwtutils.createJWT(""+ lgf.getUserid(), "roocvthree", lgf.getUsername(), 86400000);
+			//String access_token = jwtutils.createJWT(""+ lgf.getUserid(), "roocvthree", lgf.getUsername(), 86400000);
+			String access_token = jwtutils.createJWT(""+ lgf.getUserid(), keyName, lgf.getUsername(), 86400000);
+
+
+			String did = getBrowserInfo(browserType);
+
+
+
+			long nowMillis = System.currentTimeMillis();
+			Timestamp now = new Timestamp(nowMillis);
+
+			long expMillis = nowMillis + 86400000;
+			Timestamp exp = new Timestamp(expMillis);
+
+			UserSource ussrc = new UserSource();
+			ussrc.setAuthkey(access_token);
+			ussrc.setDeviceid(did);
+			ussrc.setUserid(lgf.getUserid());
+			ussrc.setIsactive(1);
+			ussrc.setLogindate(now);
+			ussrc.setExpiredate(exp);
+			ussrc.setLocaladdr(request.getLocalAddr());
+			ussrc.setRemoteaddr(request.getRemoteAddr());
+			ussrc.setChanneltoken(chnlToken);
+			//ussrc.setChanneltoken("channeltoken");
+
+			usservice.getCreate(headers.get("tenantID").get(0), ussrc);
+
+
+
+
+			String uToken = "null";
+			//chnlToken = "null";
+
+			// check password expiration
+			ChangePasswordCycle cpc = new ChangePasswordCycle();
+			cpc = cpservice.getViewlastpassword(headers.get("tenantID").get(0), lgf.getUserid());
+
+			String errorMessage ="";
+			if(cpc ==null)
+			{
+				//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Please Change Password,first password must be change ." );
+				//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true , 'errorMessage' : 'Change Password' }";
+				errorMessage="Change Password";
+			}
+			else
+			{
+				String format = "yyyy-MM-dd HH:mm:ss.SSS";
+				SimpleDateFormat sdf = new SimpleDateFormat(format);
+
+				long nowMilliscp = System.currentTimeMillis();
+				Timestamp nowcp = new Timestamp(nowMilliscp);
+
+				try {
+					Date dateObj1 = sdf.parse(cpc.getUpdatedtime().toString());
+					Date dateObj2 = sdf.parse(nowcp.toString());
+					System.out.println(dateObj1);
+					System.out.println(dateObj2 + "\n");
+
+					long diff = dateObj2.getTime() - dateObj1.getTime();
+
+					int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
+					System.out.println("difference between days: " + diffDays);
+
+					int cpclLimitexpire = 90;
+
+					ChangePasswordCycleLimit cpclimit = new ChangePasswordCycleLimit();
+					cpclimit = cpclservice.getViewlimit(headers.get("tenantID").get(0));
+
+					if(cpclimit == null)
+					{
+						cpclLimitexpire = 90;
+					}
+					else
+					{
+						if(cpclimit.getExpirein()<=0)
+						{
+							cpclLimitexpire = 90;
+						}
+						else
+						{
+							cpclLimitexpire = cpclimit.getExpirein();
+						}
+
+					}
+
+					if(diffDays>=cpclLimitexpire)
+					{
+						//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Please Change Password,Expire already after :" +cpclLimitexpire+ " day(s) " );
+						//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true , 'errorMessage' : 'Password Expired' }";
+						errorMessage="Password Expired";
+					}
+					/*else
+					{
+						//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true }";
+					}*/
+
+
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+
+			LoginFormData response = new LoginFormData();
+			//response.setUserchnltoken(uToken);
+			//response.setChnltoken(chnlToken);
+			//response.setAccess_token(access_token);
+			response.setAccessToken(access_token);
+
+			response.setErrorMessage(errorMessage);
+
+			/*UserProfile upsearchbyuser = upservice.getViewbyuserid(headers.get("tenantID").get(0), lgf.getUserid());
+
+			List<Menulist> resultmenu = null;
+			if(upsearchbyuser == null)
+			{
+				//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Invalid user profileid");
+				System.out.println("==================================");
+				System.out.println("Invalid user profileid");
+				System.out.println("==================================");
+			}
+			else
+			{
+				resultmenu = menuservice.getListmenuwithrole(headers.get("tenantID").get(0),upsearchbyuser.getRoleid());
+			}*/
+
+
+			//response.setDataMenu(resultmenu);
+
+
+			//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'access_token' : '" + access_token + "' , 'isValid' : true  , 'errorMessage' : '"+errorMessage+"' }";
+			//ac = "{  'access_token' : '" + access_token + "' , 'isValid' : true  , 'errorMessage' : '"+errorMessage+"' }";
+			//JsonElement je = jp.parse(ac);
+			//prettyJsonString = gson.toJson(je);
+
+			//trb.TrailAll(headers.get("tenantID").get(0),access_token,request);
+
+
+			//return prettyJsonString;
+			return response;
+			//return postret;
+			//cari token dulu jika ada di gunakan dan expiredate nya di perpanjang,logindatenya di update
+			//jika tidak ada maka di create ulang
+
+			//return service.findByUsernameandPassword(headers.get("tenantID").get(0), obj.getUsername(), obj.getPassword());
+		}
+		else
+		{
+			throw new CoreException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+		}
+		//return 0;
+
+		//service.getCreate(headers.get("tenantID").get(0),obj);
+	}
+
+	@RequestMapping(method=RequestMethod.POST)
+	public LoginFormData getLogin(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody LoginForm obj) {
+		String prettyJsonString ="";
+		String ac="";
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		JsonParser jp = new JsonParser();
+
+		EngineCredential result = new EngineCredential();
+		//result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		String postret = "";
+
+
+
+		boolean isEmptyusername = obj.getUsername() == null || obj.getUsername().trim().length() == 0;
+		boolean isEmptypassword = obj.getPassword() == null || obj.getPassword().trim().length() == 0;
+
+		if(isEmptyusername)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Username cannot be empty");
+		}
+
+		if(isEmptypassword)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Password cannot be empty");
+		}
+
+
+		obj.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(obj.getPassword())));
+
+
+		result = ecservice.getView(headers.get("tenantID").get(0),this.ECID);
+		if (result == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+		JSONObject pdcomposer = new JSONObject();
+
+		pdcomposer.put("username", result.getChannelusername());
+		pdcomposer.put("password", result.getChannelPassword());
+
+		String chnlToken ="";
+
+		if (result == null) {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data found.");
+		}
+
+
+		String serverChannel ="";
+
+
+		try {
+			postret = hpr.setPostData(result.getChannelapi()+"/auth/login",pdcomposer);
+
+			String jsonString = postret;
+			JSONObject jsonObject;
+
+			jsonObject = new JSONObject(jsonString);
+
+			if(!jsonObject.has("token"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(jsonObject.getString("token") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+			}
+
+			if(!jsonObject.has("server"))
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+			if(jsonObject.getString("server") ==null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+			}
+
+
+			chnlToken = jsonObject.getString("token");
+			serverChannel = jsonObject.getString("server");
+			System.out.println("channel token is :" + jsonObject.getString("token"));
+			System.out.println("server is :" + jsonObject.getString("server"));
+
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.out.println("channel post return is : "+ postret);
+
+		System.out.println("Channel Token is : " +chnlToken);
+		System.out.println("server channel is : " +serverChannel);
+
+		//obj.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(obj.getPassword())));
+
+		if (service.isUserExist(headers.get("tenantID").get(0),obj)) {
+			LoginForm lgf = service.findByUsernameandPassword(headers.get("tenantID").get(0), obj.getUsername(), obj.getPassword());
+
+			String browserType = headers.get("User-Agent").get(0);
+
+			String keyName = result.getRootcategory();
+
+			//String access_token = jwtutils.createJWT(""+ lgf.getUserid(), "roocvthree", lgf.getUsername(), 86400000);
+			//String access_token = jwtutils.createJWT(""+ lgf.getUserid(), "roocvthree", lgf.getUsername(), 86400000);
+			String access_token = jwtutils.createJWT(""+ lgf.getUserid(), keyName, lgf.getUsername(), 86400000);
+
+
+			String did = getBrowserInfo(browserType);
+
+
+
+			long nowMillis = System.currentTimeMillis();
+			Timestamp now = new Timestamp(nowMillis);
+
+			long expMillis = nowMillis + 86400000;
+			Timestamp exp = new Timestamp(expMillis);
+
+			UserSource ussrc = new UserSource();
+			ussrc.setAuthkey(access_token);
+			ussrc.setDeviceid(did);
+			ussrc.setUserid(lgf.getUserid());
+			ussrc.setIsactive(1);
+			ussrc.setLogindate(now);
+			ussrc.setExpiredate(exp);
+			ussrc.setLocaladdr(request.getLocalAddr());
+			ussrc.setRemoteaddr(request.getRemoteAddr());
+			ussrc.setChanneltoken(chnlToken);
+
+			usservice.getCreate(headers.get("tenantID").get(0), ussrc);
+
+
+
+
+			String uToken = "null";
+			chnlToken = "null";
+
+			// check password expiration
+			ChangePasswordCycle cpc = new ChangePasswordCycle();
+			cpc = cpservice.getViewlastpassword(headers.get("tenantID").get(0), lgf.getUserid());
+
+			String errorMessage ="";
+			if(cpc ==null)
+			{
+				//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Please Change Password,first password must be change ." );
+				//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true , 'errorMessage' : 'Change Password' }";
+				errorMessage="Change Password";
+			}
+			else
+			{
+				String format = "yyyy-MM-dd HH:mm:ss.SSS";
+				SimpleDateFormat sdf = new SimpleDateFormat(format);
+
+				long nowMilliscp = System.currentTimeMillis();
+				Timestamp nowcp = new Timestamp(nowMilliscp);
+
+				try {
+					Date dateObj1 = sdf.parse(cpc.getUpdatedtime().toString());
+					Date dateObj2 = sdf.parse(nowcp.toString());
+					System.out.println(dateObj1);
+					System.out.println(dateObj2 + "\n");
+
+					long diff = dateObj2.getTime() - dateObj1.getTime();
+
+					int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
+					System.out.println("difference between days: " + diffDays);
+
+					int cpclLimitexpire = 90;
+
+					ChangePasswordCycleLimit cpclimit = new ChangePasswordCycleLimit();
+					cpclimit = cpclservice.getViewlimit(headers.get("tenantID").get(0));
+
+					if(cpclimit == null)
+					{
+						cpclLimitexpire = 90;
+					}
+					else
+					{
+						if(cpclimit.getExpirein()<=0)
+						{
+							cpclLimitexpire = 90;
+						}
+						else
+						{
+							cpclLimitexpire = cpclimit.getExpirein();
+						}
+
+					}
+
+					if(diffDays>=cpclLimitexpire)
+					{
+						//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Please Change Password,Expire already after :" +cpclLimitexpire+ " day(s) " );
+						//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true , 'errorMessage' : 'Password Expired' }";
+						errorMessage="Password Expired";
+					}
+					/*else
+					{
+						//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'chnltoken' :'" + chnlToken + "' , 'access_token' : '" + access_token + "' , 'isValid' : true }";
+					}*/
+
+
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+
+			LoginFormData response = new LoginFormData();
+			//response.setUserchnltoken(uToken);
+			//response.setChnltoken(chnlToken);
+			//response.setAccess_token(access_token);
+			response.setAccessToken(access_token);
+
+			response.setErrorMessage(errorMessage);
+
+			/*UserProfile upsearchbyuser = upservice.getViewbyuserid(headers.get("tenantID").get(0), lgf.getUserid());
+
+			List<Menulist> resultmenu = null;
+			if(upsearchbyuser == null)
+			{
+				//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Invalid user profileid");
+				System.out.println("==================================");
+				System.out.println("Invalid user profileid");
+				System.out.println("==================================");
+			}
+			else
+			{
+				resultmenu = menuservice.getListmenuwithrole(headers.get("tenantID").get(0),upsearchbyuser.getRoleid());
+			}*/
+
+
+			//response.setDataMenu(resultmenu);
+
+
+			//ac = "{ 'userchnltoken' : '"+ uToken +"' , 'access_token' : '" + access_token + "' , 'isValid' : true  , 'errorMessage' : '"+errorMessage+"' }";
+			//JsonElement je = jp.parse(ac);
+			//prettyJsonString = gson.toJson(je);
+
+			//trb.TrailAll(headers.get("tenantID").get(0),access_token,request);
+
+
+			//return prettyJsonString;
+			return response;
+			//return postret;
+			//cari token dulu jika ada di gunakan dan expiredate nya di perpanjang,logindatenya di update
+			//jika tidak ada maka di create ulang
+
+			//return service.findByUsernameandPassword(headers.get("tenantID").get(0), obj.getUsername(), obj.getPassword());
+		}
+		else
+		{
+			throw new CoreException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+		}
+		//return 0;
+
+		//service.getCreate(headers.get("tenantID").get(0),obj);
+	}
+
+
+	/*
+		V3 Ends Here
+	*/
 
 }

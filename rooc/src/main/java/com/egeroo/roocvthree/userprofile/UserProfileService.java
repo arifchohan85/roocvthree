@@ -1,5 +1,7 @@
 package com.egeroo.roocvthree.userprofile;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -14,6 +16,11 @@ public class UserProfileService {
 		return appMapper.findAll();	 
 	}
 	
+	public List<LinkedHashMap> getIndexv3(String tenant) {
+		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
+		return appMapper.findAllv3();	 
+	}
+
 	public List<UserProfile> getIndexother(String tenant) {
 		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
 		return appMapper.findAllother();	 
@@ -29,6 +36,11 @@ public class UserProfileService {
 		return appMapper.findByuserid(userid);
 	}
 	
+	public HashMap getViewbyuseridv3(String tenant,int userid) {
+		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
+		return appMapper.findByuseridv3(userid);
+	}
+
 	public UserProfile getPasswordviewbyuserid(String tenant,int userid) {
 		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
 		return appMapper.findpasswordByuserid(userid);

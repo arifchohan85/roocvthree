@@ -122,4 +122,11 @@ public class DirectoryService {
 		return appMapper.Updatertsaonly(directory);
 	}
 
+	/*start v3*/
+	public List<DirectoryIntentv3> getDirectoryintentv3(String tenant) {
+		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
+		return appMapper.findAlldirectoryintentv3();
+	}
+	/*end v3*/
+
 }

@@ -2,7 +2,6 @@ package com.egeroo.roocvthree.user;
 
 import java.util.List;
 
-
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectKey;
@@ -12,7 +11,7 @@ public interface UserMapper {
 	
 	@Select("SELECT * FROM ms_app_user ORDER BY userid")
     public List<User> findAll();
-	
+		
 	@Select("SELECT * FROM ms_app_user WHERE userid = #{userid}")
     public User findOne(Integer userid);
 	

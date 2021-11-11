@@ -2,6 +2,7 @@ package com.egeroo.roocvthree.dashboard;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
@@ -623,6 +624,114 @@ public class DashboardMapperImpl extends BaseDAO implements DashboardMapper {
 		try{
 			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
 			db = dbMapper.findDbclttresholdwithdate(datefrom,dateto);
+			log.info("findDbkpiwithdate data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findDbkpiwithdate data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public int getDataUser(Date datefrom, Date dateto) {
+		System.out.println("db intent List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int db = 0;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getDataUser(datefrom,dateto);
+			log.info("getUser data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public int getMessage(Date datefrom, Date dateto) {
+		System.out.println("db intent List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int db = 0;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getMessage(datefrom,dateto);
+			log.info("getUser data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public Map getIntent(Date datefrom, Date dateto) {
+		System.out.println("db getListIntent : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		Map db = null;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getIntent(datefrom,dateto);
+			log.info("findDbkpiwithdate data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findDbkpiwithdate data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public List<Map> getIncoming(Date datefrom, Date dateto) {
+		System.out.println("db getIncoming : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<Map> db = null;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getIncoming(datefrom,dateto);
+			log.info("findDbkpiwithdate data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findDbkpiwithdate data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public List<Map> getListChannel(Date datefrom, Date dateto) {
+		System.out.println("db getListChannel : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<Map> db = null;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getListChannel(datefrom,dateto);
+			log.info("findDbkpiwithdate data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findDbkpiwithdate data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return db;
+	}
+
+	@Override
+	public List<Map> getListKPI(Date datefrom, Date dateto) {
+		System.out.println("db getListKPI : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<Map> db = null;
+		try{
+			DashboardMapper dbMapper = sqlSession.getMapper(DashboardMapper.class);
+			db = dbMapper.getListKPI(datefrom,dateto);
 			log.info("findDbkpiwithdate data");
 		}catch(PersistenceException e){
 			log.debug(e + "error get findDbkpiwithdate data");

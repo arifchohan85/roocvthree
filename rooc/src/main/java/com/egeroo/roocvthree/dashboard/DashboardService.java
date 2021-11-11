@@ -1,9 +1,14 @@
 package com.egeroo.roocvthree.dashboard;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+
+import com.egeroo.roocvthree.core.util.ResultData;
+import com.egeroo.roocvthree.monitor.MonitorService;
 
 
 @Service
@@ -178,4 +183,100 @@ public class DashboardService {
 		return appMapper.findDbclttresholdwithdate(datefrom,dateto);  
     }
 
+	
+	/**
+	 * 
+	 * Start Dashboard v3
+	 */
+	public Map getIntent(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);		
+		return appMapper.getIntent(datefrom,dateto);  
+    }
+	public List<Map> getListChannel(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
+		return appMapper.getListChannel(datefrom,dateto);  
+    }
+	public List<Map> getIncoming(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
+		return appMapper.getIncoming(datefrom,dateto);  
+    }
+	public List<Map> getListKPI(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
+		return appMapper.getListKPI(datefrom,dateto);  
+    }
+	public int getDataUser(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
+		return appMapper.getDataUser(datefrom,dateto);  
+    }
+	public int getMessage(String tenant,Date datefrom, Date dateto) {
+		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
+		return appMapper.getMessage(datefrom,dateto);  
+    }
+
+	
+	public ResultData getResult(List<Map> dataList) {
+		ResultData results = new ResultData();
+		String[] label = new String[dataList.size()];
+		Double[] series = new Double[dataList.size()];
+		for(int i=0;i<dataList.size();i++) {
+			Integer totalChat = (Integer) dataList.get(i).get("series");
+			label[i] = (String) dataList.get(i).get("labels");
+			series[i] = totalChat.doubleValue();
+		}
+		results.setLabel(label);
+		results.setSeries(series);		
+		return results;
+	}
+
+	public ResultData getResultChannel(List<Map> dataList) {
+		ResultData results = new ResultData();
+		String[] label = new String[dataList.size()];
+		Double[] series = new Double[dataList.size()];
+		for(int i=0;i<dataList.size();i++) {
+			Integer totalChat = (Integer) dataList.get(i).get("totalchat");
+			label[i] = (String) dataList.get(i).get("channelname");
+			series[i] = totalChat.doubleValue();
+		}
+		results.setLabel(label);
+		results.setSeries(series);		
+		return results;
+	}
+	
+	public ResultData getResultKPI(List<Map> dataList) {
+		ResultData results = new ResultData();
+		String[] label = new String[dataList.size()];
+		Double[] series = new Double[dataList.size()];
+		for(int i=0;i<dataList.size();i++) {
+			BigDecimal percentage = (BigDecimal) dataList.get(i).get("percentage");
+			label[i] = (String) dataList.get(i).get("kpi");
+			series[i] = percentage.doubleValue();
+		}
+		results.setLabel(label);
+		results.setSeries(series);		
+		return results;
+	}
+	public Dashboardv3 getAllDashboard(String tenant,Date datefrom, Date dateto, MonitorService mservice){
+		Dashboardv3 dataAll = new Dashboardv3();
+		try {			
+			Map intentMap = getIntent(tenant, datefrom, dateto);
+			dataAll.setDataUser(getDataUser(tenant, datefrom, dateto));
+			dataAll.setDataMessage(getMessage(tenant, datefrom, dateto));
+			dataAll.setDataChannels(getResultChannel(getListChannel(tenant, datefrom, dateto)));
+			dataAll.setDataTotalNewIntent((int)intentMap.get("dataTotalNewIntent"));
+			dataAll.setDataTotalIntent((int)intentMap.get("dataTotalIntent"));
+			dataAll.setDataIncomingMessage(getResult(getIncoming(tenant, datefrom, dateto)));
+			dataAll.setDataKpi(getResultKPI(getListKPI(tenant, datefrom, dateto)));
+			dataAll.setDataHandle(mservice.getHandle(tenant).getCount());
+			dataAll.setDataQueue(mservice.getQueue(tenant).getCount());
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("dataAll : " + dataAll);
+		return dataAll;
+	}
+
+	/**
+	 * 
+	 * End Dashboard v3
+	 */
 }

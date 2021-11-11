@@ -1,6 +1,8 @@
 package com.egeroo.roocvthree.userprofile;
 
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -55,6 +57,23 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 		return userprofile;
 	}
 	
+	@Override
+	public List<LinkedHashMap> findAllv3() {
+		System.out.println("userprofile List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<LinkedHashMap> userprofile = null;
+		try{
+			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
+			userprofile = userprofileMapper.findAllv3();
+			log.info("getuserprofile data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return userprofile;
+	}
 	@Override
 	public List<UserProfile> findAllother() {
 		System.out.println("userprofile List : " + this.tenantIdentifier);
@@ -357,6 +376,24 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 			sqlSession.close();
 		}
 		return (UserProfile) userprofile;
+	}
+
+	@Override
+	public HashMap findByuseridv3(Integer userid) {
+		System.out.println("userprofile List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		HashMap userprofile = null;
+		try{
+			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
+			userprofile = userprofileMapper.findByuseridv3(userid);
+			log.info("getCompany data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return userprofile;
 	}
 
 	@Override

@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +61,7 @@ import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
 import com.egeroo.roocvthree.trainlog.TrainLog;
 import com.egeroo.roocvthree.trainlog.TrainLogData;
 import com.egeroo.roocvthree.trainlog.TrainLogService;
+import com.google.gson.internal.LinkedHashTreeMap;
 
 
 
@@ -106,8 +110,13 @@ public class InteractionController {
 	
 	@RequestMapping(method=RequestMethod.GET,value="/indextrain")
 	public List<Interaction> getIndextrain(@RequestHeader HttpHeaders headers) {
-		//List<Interaction> result = service.getIndex(headers.get("tenantID").get(0));
 		List<Interaction> result = service.getIndexjointrain(headers.get("tenantID").get(0));
+		return result;
+	}
+
+	@RequestMapping(method=RequestMethod.GET,value="/train")
+	public List<LinkedHashMap> getIndextrainv3(@RequestHeader HttpHeaders headers) {
+		List<LinkedHashMap> result = service.getIndexjointrainv3(headers.get("tenantID").get(0));
 		return result;
 	}
 	
@@ -137,6 +146,34 @@ public class InteractionController {
 		}
 		
 		List<InteractionChathistory> result = service.getIndexjoindate(headers.get("tenantID").get(0),today,tomorrow);
+		return result;
+	}
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public List<LinkedHashMap> getIndexdatev3(@RequestHeader HttpHeaders headers,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
+		Date today = new Date();
+ 		Date tomorrow = new Date();
+		
+		if (datefrom == null)
+		{
+			//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected page in request url");
+			today = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+	    	tomorrow = DateUtils.addDays(today, 1);
+		}
+		
+		if (dateto == null)
+		{
+			//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected page in request url");
+			today = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+	    	tomorrow = DateUtils.addDays(today, 1);
+		}
+		else
+		{
+			today = datefrom;
+			tomorrow = dateto;
+		}
+		
+		List<LinkedHashMap> result = service.getIndexjoindatev3(headers.get("tenantID").get(0),today,tomorrow);
 		return result;
 	}
 	

@@ -11,7 +11,8 @@ public class LoginFormData implements Serializable {
     private String accessToken;
 
     private String errorMessage;
-    private List<Menulist> dataMenu;
+
+    //private List<Menulist> dataMenu;
 
     /*public String getUserchnltoken() {
         return userchnltoken;
@@ -61,11 +62,11 @@ public class LoginFormData implements Serializable {
         this.errorMessage = errorMessage;
     }
 
-    public List<Menulist> getDataMenu() {
+    /*public List<Menulist> getDataMenu() {
         return dataMenu;
     }
 
     public void setDataMenu(List<Menulist> dataMenu) {
         this.dataMenu = dataMenu;
-    }
+    }*/
 }

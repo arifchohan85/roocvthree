@@ -4118,4 +4118,24 @@ public class DirectoryMapperImpl extends BaseDAO implements DirectoryMapper{
 		return prettyJsonString;
 	}
 
+	/*start v3*/
+	@Override
+	public List<DirectoryIntentv3> findAlldirectoryintentv3() {
+		System.out.println("dir List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<DirectoryIntentv3> ec = null;
+		try{
+			DirectoryMapper ecMapper = sqlSession.getMapper(DirectoryMapper.class);
+			ec = ecMapper.findAlldirectoryintentv3();
+			log.info("getdir data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get dir data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
+	/*end v3*/
+
 }

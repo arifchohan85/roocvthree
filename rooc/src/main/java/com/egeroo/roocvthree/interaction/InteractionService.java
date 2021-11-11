@@ -1,6 +1,7 @@
 package com.egeroo.roocvthree.interaction;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -19,7 +20,12 @@ public class InteractionService {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.findAlljoindate(datefrom,dateto);	 
 	}
-	
+
+	public List<LinkedHashMap> getIndexjoindatev3(String tenant,Date datefrom,Date dateto) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		return appMapper.findAlljoindatev3(datefrom,dateto);	 
+	}
+
 	public List<InteractionIndex> getIndexjoinistraindate(String tenant,Date datefrom,Date dateto) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.findAlljoinistraindate(datefrom,dateto);	 
@@ -35,6 +41,11 @@ public class InteractionService {
 		return appMapper.findAlljointrain();	 
 	}
 	
+	public List<LinkedHashMap> getIndexjointrainv3(String tenant) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		return appMapper.findAlljointrainv3();	 
+	}
+
 	public Interaction getIndexjoincount(String tenant) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.findCountalljoin();	 

@@ -2,6 +2,7 @@ package com.egeroo.roocvthree.dashboard;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -147,5 +148,27 @@ public interface DashboardMapper {
 	@Select("select * from \"fn_dsb_clthreshold\"(#{datefrom},#{dateto});\n" + 
 			"")
     public List<DashboardCltTreshold> findDbclttresholdwithdate(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+
 	
+	@Select("select fn_dsb_user('${datefrom}','${dateto}') dataMessage")
+	public int getDataUser(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+	
+	@Select("select fn_dsb_messageuser('${datefrom}','${dateto}') dataMessage")
+	public int getMessage(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+	
+	@Select("select coalesce(totalintentnew,0) \"dataTotalNewIntent\",coalesce(totalintent,0) \"dataTotalIntent\" from fn_dsb_intent('${datefrom}','${dateto}') tgl\r\n")
+	public Map getIntent(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+
+	@Select("SELECT unnest('{Total Answer,Answer By Bot,Answer By Agent,Not Answer}'::text[]) AS labels,\r\n" + 
+			"unnest(ARRAY[totalAnswer::int,totalAnswerByBot::int,totalAnswerByAgent::int,totalNotAnswer::int]) AS series \r\n" + 
+			"from (\r\n" + 
+			"select * from fn_dsb_incomingmessage('${datefrom}','${dateto}') tbl\r\n" + 
+			") tbl")
+	public List<Map> getIncoming(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+	
+	@Select("select * from fn_dsb_channel('${datefrom}','${dateto}') tgl union all select 'rooc' channelname,0 totalchat where not exists (select * from fn_dsb_channel('${datefrom}','${dateto}'))")
+	public List<Map> getListChannel(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
+
+	@Select("select * from fn_dsb_kpi('${datefrom}','${dateto}') tgl")
+	public List<Map> getListKPI(@Param("datefrom") Date datefrom,@Param("dateto") Date dateto);
 }
