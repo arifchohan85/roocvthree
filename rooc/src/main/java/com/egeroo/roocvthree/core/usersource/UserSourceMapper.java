@@ -26,8 +26,8 @@ public interface UserSourceMapper {
     public UserSource findByAuthkeyandUserid(@Param("authkey") String authkey,@Param("userid") int userid);
 	
 	@SelectKey(statement = "currval('usersourceid')", keyProperty = "usersourceid", before = true , resultType = int.class)
-	@Select("Insert into ms_app_usersource(userid,logindate,expiredate,authkey,deviceid,isactive,localaddr,remoteaddr) " //,createdby,updatedby
-			+ "VALUES (#{userid},#{logindate},#{expiredate},#{authkey},#{deviceid},#{isactive},#{localaddr},#{remoteaddr}) "
+	@Select("Insert into ms_app_usersource(userid,logindate,expiredate,authkey,deviceid,isactive,localaddr,remoteaddr,channeltoken) " //,createdby,updatedby
+			+ "VALUES (#{userid},#{logindate},#{expiredate},#{authkey},#{deviceid},#{isactive},#{localaddr},#{remoteaddr},#{channeltoken}) "
 			+ " RETURNING usersourceid") //,#{createdBy},#{updateBy}
 	//@Select("Insert into ms_app_userrole(roleid,rolename) VALUES (#{roleid},#{rolename}) ")
 	//@Options(useGeneratedKeys=true, keyProperty="roleid")

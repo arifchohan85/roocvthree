@@ -69,6 +69,14 @@ public class CoreHandlerInterceptor implements HandlerInterceptor {
 		{
 			isFound = true;
 		}
+		else if(uri.contains("login/"))
+		{
+			isFound = true;
+		}
+		else if(uri.contains("login"))
+		{
+			isFound = true;
+		}
 		else if(uri.contains("roocvthree/error"))
 		{
 			isFound = true;
