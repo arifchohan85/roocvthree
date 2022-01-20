@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.http.HttpResponse;
@@ -15,6 +17,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -33,6 +36,7 @@ import com.egeroo.roocvthree.core.usersource.UserSource;
 import com.egeroo.roocvthree.core.usersource.UserSourceService;
 import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/gen")
@@ -75,7 +79,8 @@ public class GenericController {
 					if(apiChannel.getMethodvalue().equals("GET")) {
 						output = getMethod(url, tenantId, chnlToken);						
 					}else {
-						output = postMethod(url, tenantId,token, params.getParams());
+						url = result.getChannelapi() + apiChannel.getUrlvalue();
+						output = postMethod(url, tenantId,chnlToken, params.getData());
 					}					
 				}				
 			}catch(Exception e) {
@@ -120,7 +125,7 @@ public class GenericController {
 		return result.toString();
 	}
 	
-	public String postMethod(String restUrl,String tenantID,String channelToken,String postdata) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+	public String postMethod(String restUrl,String tenantID,String channelToken,Map<String, Object> postdata) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
     {
 		
 		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(this.timeoutrequest).build();
@@ -140,13 +145,11 @@ public class GenericController {
 		post.setHeader("Accept", "application/json;charset=UTF-8");
         post.setHeader("X-Stream" , "true");
             
-        	//StringEntity params = new StringEntity(postdata.toString());
-	        StringEntity params = new StringEntity(postdata,"UTF-8");
+        	ObjectMapper obj = new ObjectMapper();
+        	String postObj = obj.writeValueAsString(postdata);
+        	
+        	StringEntity params = new StringEntity(postObj,ContentType.APPLICATION_JSON);
 	        post.setEntity(params);
-            
-            System.out.println("\nSending 'POST' request to URL : " + restUrl);
-    		System.out.println("Post parameters : " + post.getEntity());
-    		
             
             CloseableHttpResponse response = null;
             StringBuffer result = new StringBuffer();
@@ -160,8 +163,6 @@ public class GenericController {
 				
 				System.out.println("response content is : " + response.getEntity().getContent().toString());
 				
-	    		
-
 	    		BufferedReader rd = null;
 				try {
 					rd = new BufferedReader(
