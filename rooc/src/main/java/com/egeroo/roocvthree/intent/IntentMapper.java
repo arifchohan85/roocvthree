@@ -57,25 +57,23 @@ public interface IntentMapper {
 	public Intent findMaxintentid();
 	
 	@SelectKey(statement = "currval('intentid')", keyProperty = "intentid", before = false , resultType = int.class)
-	@Select("Insert into ms_eng_intent(intentid,directoryid,question,answer,sort,faqtags,active,iretquestionid"
-			+ ",isgenerated,sentimentid,intentgroupid,description,retvoiceid,isvoicegenerated"
+	@Select("Insert into ms_eng_intent(intentid,directoryid,question,answer,iretquestionid"
+			+ ",isgenerated,intentparentid"
 			+ ",createdby,updatedby,createdtime,updatedtime) "
-			+ "VALUES (#{intentid},#{directoryid},#{question},#{answer},#{sort},#{faqtags}"
-			+ ",#{active},#{iretquestionid}"
-			+ ",#{isgenerated},#{sentimentid},#{intentgroupid},#{description},#{retvoiceid},#{isvoicegenerated}"
+			+ "VALUES (#{intentid},#{directoryid},#{question},#{answer}"
+			+ ",#{iretquestionid}"
+			+ ",#{isgenerated},#{intentparentid}"
 			+ ",#{createdby},#{updatedby},#{createdtime},#{updatedtime}) "
 			+ " RETURNING intentid") //,#{createdBy},#{updateBy}
 	public String Save(Intent intent);
 
 	@SelectKey(statement = "currval('intentid')", keyProperty = "intentid", before = false , resultType = int.class)
-	@Select("Insert into ms_eng_intent(intentid,directoryid,question,answer,sort,faqtags,active,iretquestionid"
-			+ ",isgenerated,sentimentid,intentgroupid,description,retvoiceid,isvoicegenerated"
-			+ ",retmlid,ismlgenerated"
+	@Select("Insert into ms_eng_intent(intentid,directoryid,question,answer,iretquestionid"
+			+ ",isgenerated,intentparentid"
 			+ ",createdby,updatedby,createdtime,updatedtime) "
-			+ "VALUES (#{intentid},#{directoryid},#{question},#{answer},#{sort},#{faqtags}"
-			+ ",#{active},#{iretquestionid}"
-			+ ",#{isgenerated},#{sentimentid},#{intentgroupid},#{description},#{retvoiceid},#{isvoicegenerated}"
-			+ ",#{retmlid},#{ismlgenerated}"
+			+ "VALUES (#{intentid},#{directoryid},#{question},#{answer}"
+			+ ",#{iretquestionid}"
+			+ ",#{isgenerated},#{intentparentid}"
 			+ ",#{createdby},#{updatedby},#{createdtime},#{updatedtime}) "
 			+ " RETURNING intentid") //,#{createdBy},#{updateBy}
 	public String Saveengine(Intent intent);
@@ -83,17 +81,8 @@ public interface IntentMapper {
 	@Select("Update ms_eng_intent SET directoryid=#{directoryid}"
 			+ " ,question=#{question}"
 			+ " ,answer=#{answer}"
-			+ " ,sort=#{sort}"
-			+ " ,faqtags=#{faqtags}"
 			+ " ,iretquestionid=#{iretquestionid}"
-			+ " ,active=#{active}"
-			+ " ,sentimentid=#{sentimentid}"
-			+ " ,intentgroupid=#{intentgroupid}"
 			+ " ,description=#{description}"
-			+ " ,retvoiceid=#{retvoiceid}"
-			+ " ,isvoicegenerated=#{isvoicegenerated}"
-			+ " ,retmlid=#{retmlid}"
-			+ " ,ismlgenerated=#{ismlgenerated}"
 			+ " ,updatedby=#{updatedby}"
 			+ " ,updatedtime=#{updatedtime}"
 			+ " WHERE intentid=#{intentid} "
@@ -101,40 +90,19 @@ public interface IntentMapper {
     public String Updateinternal(Intent intent);
 	
 	@Select("Update ms_eng_intent SET directoryid=#{directoryid}"
+			+ " ,intentparentid=#{intentparentid}"
 			+ " ,question=#{question}"
 			+ " ,answer=#{answer}"
-			+ " ,sort=#{sort}"
-			+ " ,faqtags=#{faqtags}"
 			+ " ,iretquestionid=#{iretquestionid}"
-			+ " ,active=#{active}"
-			+ " ,sentimentid=#{sentimentid}"
-			+ " ,intentgroupid=#{intentgroupid}"
 			+ " ,description=#{description}"
-			+ " ,retvoiceid=#{retvoiceid}"
-			+ " ,isvoicegenerated=#{isvoicegenerated}"
-			+ " ,retmlid=#{retmlid}"
-			+ " ,ismlgenerated=#{ismlgenerated}"
 			+ " ,updatedby=#{updatedby}"
 			+ " ,updatedtime=#{updatedtime}"
 			+ " WHERE intentid=#{intentid} "
 			+ " RETURNING intentid")
     public String Update(Intent intent);
 	
-	@Select("Update ms_eng_intent SET retvoiceid=#{retvoiceid}"
-			+ " ,isvoicegenerated=#{isvoicegenerated}"
-			+ " WHERE intentid=#{intentid} "
-			+ " RETURNING intentid")
-    public String Updatevoiceonly(Intent intent);
 	
-	@Select("Update ms_eng_intent SET retmlid=#{retmlid}"
-			+ " ,ismlgenerated=#{ismlgenerated}"
-			+ " WHERE intentid=#{intentid} "
-			+ " RETURNING intentid")
-    public String Updatemlrtsaonly(Intent intent);
-	/*
-	 		+ " ,updatedby=#{updatedby}"
-			+ " ,updatedtime=#{updatedtime}"
-	*/
+	
 	
 	@SelectKey(statement = "currval('recordid')", keyProperty = "recordid", before = false , resultType = int.class)
 	@Select("Insert into tr_eng_maxintent(intentid"
@@ -144,43 +112,7 @@ public interface IntentMapper {
 			+ " RETURNING recordid") //,#{createdBy},#{updateBy}
 	public String Savemaxintent(MaxIntent maxintent);
 	
-	/*@Select(" WITH RECURSIVE dirmaptree AS\n" + 
-			" (SELECT *, CAST(name As varchar(1000)) As directorymap\n" + 
-			" FROM ms_eng_directory\n" + 
-			" WHERE (parentid IS null or parentid<=0)\n" + 
-			" UNION ALL\n" + 
-			" SELECT si.*,\n" + 
-			"	CAST(sp.directorymap || '->' || si.name As varchar(1000)) As directorymap\n" + 
-			" FROM ms_eng_directory As si\n" + 
-			"	INNER JOIN dirmaptree AS sp\n" + 
-			"	ON (si.parentid = sp.directoryid)\n" + 
-			" )\n" + 
-			" SELECT i.*, directorymap\n" + 
-			" FROM dirmaptree\n" + 
-			" inner join ms_eng_intent i\n" + 
-			" on dirmaptree.directoryid=i.directoryid\n" + 
-			" WHERE dirmaptree.categorymode <> 'QUESTIONNAIRE_BRANCHING' \n" + 
-			" AND dirmaptree.categorymode <> 'QUESTIONNAIRE_STEPPING' \n" + 
-			" ORDER BY i.intentid asc; ")
-    public List<Intent> extractIntent();*/
 	
-	/*@Select(" WITH RECURSIVE dirmaptree AS\n" + 
-			" (SELECT *, CAST(name As varchar(1000)) As directorymap\n" + 
-			" FROM ms_eng_directory\n" + 
-			" WHERE (parentid IS null or parentid<=0)\n" + 
-			" UNION ALL\n" + 
-			" SELECT si.*,\n" + 
-			"	CAST(sp.directorymap || '->' || si.name As varchar(1000)) As directorymap\n" + 
-			" FROM ms_eng_directory As si\n" + 
-			"	INNER JOIN dirmaptree AS sp\n" + 
-			"	ON (si.parentid = sp.directoryid)\n" + 
-			" )\n" + 
-			" SELECT i.*, directorymap\n" + 
-			" FROM dirmaptree\n" + 
-			" inner join ms_eng_intent i\n" + 
-			" on dirmaptree.directoryid=i.directoryid\n" + 
-			" ORDER BY i.intentid asc; ")
-    public List<Intent> extractIntent();*/
 	@Select(" WITH RECURSIVE dirmaptree AS\n" + 
 			" (SELECT *, CAST(name As varchar(1000)) As directorymap\n" + 
 			" FROM ms_eng_directory\n" + 
@@ -204,24 +136,6 @@ public interface IntentMapper {
 			" ORDER BY i.intentid asc; ")
     public List<Intent> extractIntent();
 	
-	/*@Select(" WITH RECURSIVE dirmaptree AS\n" + 
-			" (SELECT *, CAST(' # ' As varchar(1000)) As path\n" + 
-			" FROM ms_eng_directory\n" + 
-			" WHERE (parentid IS null or parentid<=0)\n" + 
-			" UNION ALL\n" + 
-			" SELECT si.*,\n" + 
-			" CAST(sp.path || '->' || sp.name As varchar(1000)) As path\n" + 
-			" FROM ms_eng_directory As si\n" + 
-			" INNER JOIN dirmaptree AS sp\n" + 
-			" ON (si.parentid = sp.directoryid)\n" + 
-			" )\n" + 
-			" SELECT i.*, \n" + 
-			" path,replace(replace(path,' # ->',''),' # ','') as directorymap\n" + 
-			" FROM dirmaptree\n" + 
-			" inner join ms_eng_intent i\n" + 
-			" on dirmaptree.directoryid=i.directoryid\n" + 
-			" ORDER BY i.intentid asc;  ")
-    public List<Intent> extractIntent();*/
 	
 	@Select(" WITH RECURSIVE subordinates AS (\n" + 
 			" SELECT\n" + 
@@ -255,26 +169,7 @@ public interface IntentMapper {
 			" ; ")
     public List<Intent> findIntentdirrecursive(Integer directoryid);
 	
-	/*@Select("SELECT * FROM ms_eng_intent WHERE active=1 AND (isvoicegenerated=0 OR isvoicegenerated IS NULL) ORDER BY intentid ASC")
-    public List<Intent> findIntentnotgenvoice();*/
-	@Select("SELECT * FROM ms_eng_intent WHERE active=1 ORDER BY intentid ASC")
-    public List<Intent> findIntentnotgenvoice();
+
 	
-	@Select("SELECT * FROM ms_eng_intent WHERE active=1 AND ismlgenerated=0 ORDER BY intentid ASC ;")
-    public List<Intent> findIntentnotgenml();
-	
-	//create data pada engine,update id pada roocvthree
-	@Select("Update ms_eng_intent SET "
-			+ " iretquestionid=#{iretquestionid}"
-			+ " WHERE intentid=#{intentid} "
-			+ " RETURNING intentid")
-    public String Updatesavesyncroocengine(Intent intent);
-	
-	//update data pada engine,update id pada roocvthree
-	@Select("Update ms_eng_intent SET "
-			+ " iretquestionid=#{iretquestionid}"
-			+ " WHERE intentid=#{intentid} "
-			+ " RETURNING intentid")
-    public String Updatedatasyncroocengine(Intent intent);
 
 }

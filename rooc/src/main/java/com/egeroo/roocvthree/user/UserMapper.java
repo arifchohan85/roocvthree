@@ -7,6 +7,10 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectKey;
 
 
+
+
+
+
 public interface UserMapper {
 	
 	@Select("SELECT * FROM ms_app_user ORDER BY userid")
@@ -55,5 +59,16 @@ public interface UserMapper {
 			+ " WHERE userid=#{userid} "
 			+ " RETURNING userid")
     public String Updatepassword(User user);
+	
+	@Select("Update ms_app_user SET failedloginattempt=#{failedloginattempt}"
+			+ " WHERE userid=#{userid} "
+			+ " RETURNING userid")
+    public Integer Updatefailedattempt(User user);
+	
+	@Select("Update ms_app_user SET "
+			+ " isactive=#{isactive}"
+			+ " WHERE userid=#{userid} "
+			+ " RETURNING userid")
+    public Integer Updateinactive(User user);
 
 }

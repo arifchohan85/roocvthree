@@ -5,6 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 
+
+
+
+
 @Service
 public class UserService {
 	
@@ -68,5 +72,15 @@ public class UserService {
 	public boolean isLoginExist(String tenant,User user) {
         return findByUsernameandPassword(tenant,user.getUsername(),user.getPassword())!=null;
     }
+	
+	public Integer Updatefailedattempt(String tenant,User user) {
+		UserMapper appMapper = new UserMapperImpl(tenant);
+		return appMapper.Updatefailedattempt(user);
+	}
+	
+	public Integer Updateinactive(String tenant,User user) {
+		UserMapper appMapper = new UserMapperImpl(tenant);
+		return appMapper.Updateinactive(user);
+	}
 
 }

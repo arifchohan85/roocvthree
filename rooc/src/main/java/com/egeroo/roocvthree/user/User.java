@@ -17,6 +17,11 @@ import com.egeroo.roocvthree.core.base.Base;
 @Table( name = "ms_app_user" )
 public class User extends Base {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
     @GeneratedValue( strategy = GenerationType.AUTO )
     private int userid;
@@ -35,6 +40,8 @@ public class User extends Base {
 	//private Date createddate;
 	//private Date updateddate;
     private int isactive;
+    
+    private int failedloginattempt;
 	
 	public int getUserid() {
         return userid;
@@ -79,21 +86,15 @@ public class User extends Base {
 	public void setIsactive(int isactive) {
 		this.isactive = isactive;
 	}
+
+	public int getFailedloginattempt() {
+		return failedloginattempt;
+	}
+
+	public void setFailedloginattempt(int failedloginattempt) {
+		this.failedloginattempt = failedloginattempt;
+	}
 	
-	/*public Date getCreateddate() {
-        return createddate;
-    }
 	
-	public void setCreateddate(Date Createddate) {
-        this.createddate = Createddate;
-    }
-	
-	public Date getUpdateddate() {
-        return updateddate;
-    }
-	
-	public void setUpdateddate(Date Updateddate) {
-        this.updateddate = Updateddate;
-    }*/
 	
 }

@@ -2,13 +2,18 @@ package com.egeroo.roocvthree.directory;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import com.egeroo.roocvthree.core.error.CoreException;
 
 
 
 
 @Service
 public class DirectoryService {
+	
+	public String retDataPath;
 	
 	public List<Directory> getIndex(String tenant) {
 		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
@@ -91,42 +96,40 @@ public class DirectoryService {
 		return appMapper.Update(directory);
 	}
 	
-	public String getSaveroocenginecreatesync(String tenant,Directory directory) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.Createroocenginesync(directory); 
-	}
 	
 	
-	public List<Directory> getDirectoryvoicenotgenerated(String tenant) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.findDirectorynotgenvoice();	 
-	}
-	
-	public List<Directory> getDirectorynotgenml(String tenant) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.findDirectorynotgenml();	 
-	}
-	
-	public String getUpdatevoiceonly(String tenant,Directory directory) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.Updatevoiceonly(directory);
-	}
-	
-	public String getUpdatemlrtsaonly(String tenant,Directory directory) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.Updatemlrtsaonly(directory);
-	}
-	
-	public String getUpdatertsaonly(String tenant,Directory directory) {
-		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.Updatertsaonly(directory);
-	}
 
 	/*start v3*/
 	public List<DirectoryIntentv3> getDirectoryintentv3(String tenant) {
 		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
 		return appMapper.findAlldirectoryintentv3();
 	}
+	
+	public String mapView(int InitcatID,String tenant)
+	{
+		//Directory dirresult = dirmapMapper.findOne(InitcatID);
+		Directory dirresult = this.getView(tenant,InitcatID);
+		//return result;
+		if(dirresult == null)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid parent data");
+		}
+		
+		if(dirresult.getParentid() >0)
+		{
+			 //$this->createCatmapView($modelfindParentretID->ParentID);
+			this.mapView(dirresult.getParentid(),tenant);
+			this.retDataPath = this.retDataPath +"->"+ dirresult.getName();
+		}
+		else if(dirresult.getParentid() <=0)
+		{
+			//$this->retDataPath = $this->retDataPath .$modelfindParentretID->Name;
+			this.retDataPath = this.retDataPath + dirresult.getName();
+		}
+		
+		return this.retDataPath;
+	}
+	
 	/*end v3*/
 
 }

@@ -13,6 +13,11 @@ import com.egeroo.roocvthree.core.base.Base;
 @Entity
 @Table( name = "ms_eng_directory" )
 public class Directory extends Base {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
     @GeneratedValue( strategy = GenerationType.AUTO )
     private int directoryid;
@@ -20,8 +25,7 @@ public class Directory extends Base {
 	@NotNull(message ="Parent is a required field")
 	private int parentid;
 	
-	@NotNull(message ="Category Mode is a required field")
-	private String categorymode;
+	
 	
 	@NotNull(message ="Name is a required field")
 	private String name;
@@ -29,15 +33,7 @@ public class Directory extends Base {
 	@NotNull(message ="Description is a required field")
 	private String description;
 	
-	private String question;
-	private String answer;
-	private String faq;
-	private String switching;
-	private int extendenumcategoryid;
-	private int tenantid;
-	private int reticategoryid;
-	private int active;
-	private int countparent;
+	
 	
 	private String directoryname;
 	private String parentname;
@@ -48,23 +44,10 @@ public class Directory extends Base {
 	
 	private int countchild;
 	
-	private int intentid;
-	private int switchingid;
+	private int reticategoryid;
 	
-	private int sentimentid;
-	private int intentgroupid;
+	private String categorymode;
 	
-	private String switchingname;
-	private String intentname;
-	
-	private int retvoiceid;
-	private int isvoicegenerated;
-	
-	private int retmlid;
-	private int ismlgenerated;
-	private int intentparentid;
-
-	private String token;
 	
 	public int getDirectoryid() {
         return directoryid;
@@ -82,13 +65,7 @@ public class Directory extends Base {
         this.parentid = parentid;
     }
 	
-	public String getCategorymode() {
-        return categorymode;
-    }
 	
-	public void setCategorymode(String categorymode) {
-        this.categorymode = categorymode;
-    }
 	
 	public String getName() {
         return name;
@@ -106,77 +83,7 @@ public class Directory extends Base {
         this.description = description;
     }
 	
-	public String getQuestion() {
-        return question;
-    }
 	
-	public void setQuestion(String question) {
-        this.question = question;
-    }
-	
-	public String getAnswer() {
-        return answer;
-    }
-	
-	public void setAnswer(String answer) {
-        this.answer = answer;
-    }
-	
-	public String getFaq() {
-        return faq;
-    }
-	
-	public void setFaq(String faq) {
-        this.faq = faq;
-    }
-	
-	public String getSwitching() {
-        return switching;
-    }
-	
-	public void setSwitching(String switching) {
-        this.switching = switching;
-    }
-	
-	public int getExtendenumcategoryid() {
-        return extendenumcategoryid;
-    }
-	
-	public void setExtendenumcategoryid(int extendenumcategoryid) {
-        this.extendenumcategoryid = extendenumcategoryid;
-    }
-	
-	public int getTenantid() {
-        return tenantid;
-    }
-	
-	public void setTenantid(int tenantid) {
-        this.tenantid = tenantid;
-    }
-	
-	public int getReticategoryid() {
-        return reticategoryid;
-    }
-	
-	public void setReticategoryid(int reticategoryid) {
-        this.reticategoryid = reticategoryid;
-    }
-	
-	public int getActive() {
-        return active;
-    }
-	
-	public void setActive(int active) {
-        this.active = active;
-    }
-	
-	public int getCountparent() {
-        return countparent;
-    }
-	
-	public void setCountparent(int Countparent) {
-        this.countparent = Countparent;
-    }
 	
 	public String getDirectoryname() {
         return directoryname;
@@ -217,101 +124,24 @@ public class Directory extends Base {
 	public void setCountchild(int Countchild) {
         this.countchild = Countchild;
     }
-	
-	public int getIntentid() {
-        return intentid;
-    }
-	
-	public void setIntentid(int Intentid) {
-        this.intentid = Intentid;
-    }
-	
-	public int getSwitchingid() {
-        return switchingid;
-    }
-	
-	public void setSwitchingid(int Switchingid) {
-        this.switchingid = Switchingid;
-    }
-	
-	public int getSentimentid() {
-        return sentimentid;
-    }
-	
-	public void setSentimentid(int Sentimentid) {
-        this.sentimentid = Sentimentid;
-    }
-	
-	public int getIntentgroupid() {
-        return intentgroupid;
-    }
-	
-	public void setIntentgroupid(int Intentgroupid) {
-        this.intentgroupid = Intentgroupid;
-    }
 
-	public String getSwitchingname() {
-		return switchingname;
+	public int getReticategoryid() {
+		return reticategoryid;
 	}
 
-	public void setSwitchingname(String switchingname) {
-		this.switchingname = switchingname;
+	public void setReticategoryid(int reticategoryid) {
+		this.reticategoryid = reticategoryid;
 	}
 
-	public String getIntentname() {
-		return intentname;
+	public String getCategorymode() {
+		return categorymode;
 	}
 
-	public void setIntentname(String intentname) {
-		this.intentname = intentname;
-	}
-
-	public int getRetvoiceid() {
-		return retvoiceid;
-	}
-
-	public void setRetvoiceid(int retvoiceid) {
-		this.retvoiceid = retvoiceid;
-	}
-
-	public int getIsvoicegenerated() {
-		return isvoicegenerated;
-	}
-
-	public void setIsvoicegenerated(int isvoicegenerated) {
-		this.isvoicegenerated = isvoicegenerated;
-	}
-
-	public int getRetmlid() {
-		return retmlid;
-	}
-
-	public void setRetmlid(int retmlid) {
-		this.retmlid = retmlid;
-	}
-
-	public int getIsmlgenerated() {
-		return ismlgenerated;
-	}
-
-	public void setIsmlgenerated(int ismlgenerated) {
-		this.ismlgenerated = ismlgenerated;
+	public void setCategorymode(String categorymode) {
+		this.categorymode = categorymode;
 	}
 	
-	public int getIntentparentid() {
-		return intentparentid;
-	}
-
-	public void setIntentparentid(int intentparentid) {
-		this.intentparentid = intentparentid;
-	}
-
-
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
+	
+	
+	
 }

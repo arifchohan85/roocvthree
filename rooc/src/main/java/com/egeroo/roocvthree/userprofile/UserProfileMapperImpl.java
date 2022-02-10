@@ -11,6 +11,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 
+
 import com.egeroo.roocvthree.core.base.BaseDAO;
 import com.egeroo.roocvthree.core.curl.HttpPostReq;
 import com.egeroo.roocvthree.core.error.CoreException;
@@ -57,6 +58,7 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 		return userprofile;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public List<LinkedHashMap> findAllv3() {
 		System.out.println("userprofile List : " + this.tenantIdentifier);
@@ -217,7 +219,7 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 	public UserProfile Update(UserProfile userprofile) {
 		System.out.println("userprofile update : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		String lastinsertuserid="0";
+		
 		UserProfile userprofsave=null;
 		try{
 			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
@@ -378,6 +380,7 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 		return (UserProfile) userprofile;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public HashMap findByuseridv3(Integer userid) {
 		System.out.println("userprofile List : " + this.tenantIdentifier);
@@ -468,6 +471,25 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 			sqlSession.close();
 		}
 		return (UserProfile) userprofile;
+	}
+
+	@Override
+	public void Updatefromuserinactive(UserProfile userprofile) {
+		System.out.println("userprofile update : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		
+		try{
+			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
+			//userrole = 
+			userprofileMapper.Updatefromuserinactive(userprofile);
+			log.info("profile data");
+		}catch(PersistenceException e){
+			log.debug(e + "error insert userprofile data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		
 	}
 
 }

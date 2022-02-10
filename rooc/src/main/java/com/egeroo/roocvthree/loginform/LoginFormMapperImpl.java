@@ -4,6 +4,7 @@ import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
+
 import com.egeroo.roocvthree.core.base.BaseDAO;
 
 
@@ -97,6 +98,24 @@ public class LoginFormMapperImpl extends BaseDAO implements LoginFormMapper{
 		try{
 			LoginFormMapper userMapper = sqlSession.getMapper(LoginFormMapper.class);
 			user = userMapper.findByUsername(username);
+			log.info("getUser data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return (LoginForm) user;
+	}
+
+	@Override
+	public LoginForm findByUserid(int userid) {
+		System.out.println("user List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		LoginForm user = null;
+		try{
+			LoginFormMapper userMapper = sqlSession.getMapper(LoginFormMapper.class);
+			user = userMapper.findByUserid(userid);
 			log.info("getUser data");
 		}catch(PersistenceException e){
 			log.debug(e + "error get user data");

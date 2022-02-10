@@ -6,6 +6,7 @@ import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
+
 import com.egeroo.roocvthree.core.base.BaseDAO;
 import com.egeroo.roocvthree.userprofile.UserProfile;
 import com.egeroo.roocvthree.userprofile.UserProfileMapper;
@@ -234,6 +235,45 @@ public class UserMapperImpl extends BaseDAO implements UserMapper{
 			sqlSession.close();
 		}
 		//return lastinsertuserid;
+		return lastinsertuserid;
+	}
+
+	@Override
+	public Integer Updatefailedattempt(User user) {
+		System.out.println("user update attempt: " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int lastinsertuserid=0;
+		try{
+			UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+			//userrole = 
+			lastinsertuserid =userMapper.Updatefailedattempt(user);
+			log.info("update data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return lastinsertuserid;
+	}
+
+	@Override
+	public Integer Updateinactive(User user) {
+		System.out.println("user update : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int lastinsertuserid=0;
+		try{
+			UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+			//userrole = 
+			lastinsertuserid =userMapper.Updateinactive(user);
+			
+			log.info("update data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
 		return lastinsertuserid;
 	}
 

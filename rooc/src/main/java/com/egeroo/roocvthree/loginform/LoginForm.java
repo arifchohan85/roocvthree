@@ -12,8 +12,10 @@ import javax.validation.constraints.NotNull;
 @Table( name = "ms_app_user" )
 public class LoginForm {
 	
-	
-    private int userid;
+	private int userid;
+    private int roleid;
+    private int failedloginattempt;
+	private String from;
 	
 	//@Email(message = "Please provide valid username")
 	@NotNull(message ="Username is a required field")
@@ -50,7 +52,29 @@ public class LoginForm {
 		this.password = Password;
     }
 
-	
-	
+	public int getRoleid() {
+		return roleid;
+	}
 
+	public void setRoleid(int roleid) {
+		this.roleid = roleid;
+	}
+
+	public int getFailedloginattempt() {
+		return failedloginattempt;
+	}
+
+	public void setFailedloginattempt(int failedloginattempt) {
+		this.failedloginattempt = failedloginattempt;
+	}
+
+	public String getFrom() {
+		return from;
+	}
+
+	public void setFrom(String from) {
+		this.from = from;
+	}
+	
+    
 }

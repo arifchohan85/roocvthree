@@ -4,6 +4,7 @@ import com.egeroo.roocvthree.core.base.Base;
 
 import javax.persistence.*;
 
+@SuppressWarnings("serial")
 @Entity
 @Table( name = "ms_app_userprofile" )
 public class UserProfileView extends Base {

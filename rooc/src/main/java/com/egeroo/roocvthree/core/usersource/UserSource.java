@@ -40,6 +40,7 @@ public class UserSource {
 	private Timestamp logouttime;
 
 	private String channeltoken;
+	private String loginfrom;
 	
 	public int getUsersourceid() {
         return usersourceid;
@@ -135,4 +136,14 @@ public class UserSource {
 	public void setChanneltoken(String channeltoken) {
 		this.channeltoken = channeltoken;
 	}
+
+	public String getLoginfrom() {
+		return loginfrom;
+	}
+
+	public void setLoginfrom(String loginfrom) {
+		this.loginfrom = loginfrom;
+	}
+	
+	
 }

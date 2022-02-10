@@ -21,5 +21,8 @@ public interface LoginFormMapper {
 	
 	@Select("SELECT userid,username,password FROM ms_app_user WHERE username = #{username} AND isactive=1 ")
     public LoginForm findByUsername(@Param("username") String username);
+	
+	@Select("SELECT userid,username,password,roleid,coalesce(failedloginattempt,0) as failedloginattempt FROM ms_app_user WHERE userid = #{userid} AND isactive=1 ")
+    public LoginForm findByUserid(@Param("userid") int userid);
 
 }

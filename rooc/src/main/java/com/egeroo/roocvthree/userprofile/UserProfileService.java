@@ -8,6 +8,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 
+
+
 @Service
 public class UserProfileService {
 	
@@ -16,6 +18,7 @@ public class UserProfileService {
 		return appMapper.findAll();	 
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public List<LinkedHashMap> getIndexv3(String tenant) {
 		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
 		return appMapper.findAllv3();	 
@@ -36,6 +39,7 @@ public class UserProfileService {
 		return appMapper.findByuserid(userid);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public HashMap getViewbyuseridv3(String tenant,int userid) {
 		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
 		return appMapper.findByuseridv3(userid);
@@ -114,5 +118,11 @@ public class UserProfileService {
 			return true;
 		}
     }
+	
+	public void getUpdatefromuserinactive(String tenant,UserProfile userprofile) {
+		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
+		//return 
+		appMapper.Updatefromuserinactive(userprofile);
+	}
 
 }

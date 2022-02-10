@@ -1,7 +1,7 @@
 package com.egeroo.roocvthree.intent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +19,7 @@ public class IntentService {
 		return appMapper.findAll();	 
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public List<Map> getIndexV3(String tenant, boolean lite) {
 		IntentMapper appMapper = new IntentMapperImpl(tenant);
 		int active = 0;
@@ -106,15 +107,6 @@ public class IntentService {
 		return appMapper.Updateinternal(Intent);
 	}
 	
-	public String getUpdatesavesyncroocengine(String tenant,Intent Intent) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.Updatesavesyncroocengine(Intent);
-	}
-	
-	public String getUpdatedatasyncroocengine(String tenant,Intent Intent) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.Updatedatasyncroocengine(Intent);
-	}
 	
 	
 	public String getCreatemax(String tenant,MaxIntent Intent) {
@@ -122,24 +114,5 @@ public class IntentService {
 		return appMapper.Savemaxintent(Intent); 
 	}
 	
-	public List<Intent> getIntentnotgeneratedvoice(String tenant) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.findIntentnotgenvoice();	 
-	}
 	
-	public List<Intent> getIntentnotgenml(String tenant) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.findIntentnotgenml();	 
-	}
-	
-	public String getUpdatevoiceonly(String tenant,Intent Intent) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.Updatevoiceonly(Intent);
-	}
-	
-	public String getUpdatemlrtsaonly(String tenant,Intent Intent) {
-		IntentMapper appMapper = new IntentMapperImpl(tenant);
-		return appMapper.Updatemlrtsaonly(Intent);
-	}
-
 }
