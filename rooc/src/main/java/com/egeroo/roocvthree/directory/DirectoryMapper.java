@@ -273,7 +273,7 @@ public interface DirectoryMapper {
 	
 	@SelectKey(statement = "currval('directoryid')", keyProperty = "directoryid", before = true , resultType = int.class)
 	@Select("Insert into ms_eng_directory(parentid,name,description,categorymode"
-			+ "reticategoryid"
+			+ ",reticategoryid"
 			+ ",createdby,updatedby,createdtime,updatedtime) " //,createdby,updatedby
 			+ "VALUES (#{parentid},#{name},#{description},#{categorymode}"
 			+ ",#{reticategoryid}"

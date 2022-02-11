@@ -1,14 +1,6 @@
 package com.egeroo.roocvthree;
 
 
-
-
-
-
-
-
-
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,10 +14,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 
-
-
-
-
 @SpringBootApplication
 @ComponentScan({"com.egeroo.roocvthree"})
 @EnableAutoConfiguration (exclude = { DataSourceAutoConfiguration.class, SecurityAutoConfiguration.class })
@@ -37,9 +25,7 @@ public class ComposerApplication extends SpringBootServletInitializer{
 	@SuppressWarnings("unused")
 	public static void main(String[] args)throws Exception {
 		ConfigurableApplicationContext ctx = SpringApplication.run(ComposerApplication.class, args);
-		System.out.println("Version : 20_03_2021.1018.01.RooCEngine");	
-		
-       
+		System.out.println("Version : 10_02_2022.2338.01.RooCEngine");	
 	}
 	
 	

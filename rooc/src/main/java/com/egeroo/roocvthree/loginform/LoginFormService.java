@@ -25,6 +25,7 @@ import com.egeroo.roocvthree.loginform.LoginFormService;
 import com.egeroo.roocvthree.user.UserService;
 import com.egeroo.roocvthree.userprofile.UserProfileService;
 import com.egeroo.roocvthree.userprofile.UserProfileView;
+import com.egeroo.roocvthree.core.error.ValidationJson;
 import com.egeroo.roocvthree.changepasswordcycle.ChangePasswordCycle;
 import com.egeroo.roocvthree.changepasswordcyclelimit.ChangePasswordCycleLimit;
 import com.egeroo.roocvthree.core.curl.HttpPostReq;
@@ -67,6 +68,8 @@ private final Logger logger = LogManager.getLogger(LoginFormService.class);
 	JwtUtil jwtutils = new JwtUtil();
 	
 	HttpPostReq hpr = new HttpPostReq();
+	
+	ValidationJson validatejson = new ValidationJson();
 	
 	private int ECID =1;
 	
@@ -214,33 +217,38 @@ private final Logger logger = LogManager.getLogger(LoginFormService.class);
 					String jsonString = postret;
 					JSONObject jsonObject;
 
-					jsonObject = new JSONObject(jsonString);
-
-					if(!jsonObject.has("token"))
+					if(validatejson.isJSONValidstandard(jsonString))
 					{
-						throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+						jsonObject = new JSONObject(jsonString);
+
+						if(!jsonObject.has("token"))
+						{
+							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+						}
+
+						if(jsonObject.getString("token") ==null)
+						{
+							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
+						}
+
+						if(!jsonObject.has("server"))
+						{
+							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+						}
+
+						if(jsonObject.getString("server") ==null)
+						{
+							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
+						}
+
+
+						chnlToken = jsonObject.getString("token");
+						serverChannel = jsonObject.getString("server");
+						System.out.println("channel token is :" + jsonObject.getString("token"));
+						System.out.println("server is :" + jsonObject.getString("server"));
 					}
-
-					if(jsonObject.getString("token") ==null)
-					{
-						throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel access token not found.");
-					}
-
-					if(!jsonObject.has("server"))
-					{
-						throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
-					}
-
-					if(jsonObject.getString("server") ==null)
-					{
-						throw new CoreException(HttpStatus.EXPECTATION_FAILED, "channel server not found.");
-					}
-
-
-					chnlToken = jsonObject.getString("token");
-					serverChannel = jsonObject.getString("server");
-					System.out.println("channel token is :" + jsonObject.getString("token"));
-					System.out.println("server is :" + jsonObject.getString("server"));
+					
+					
 
 				} catch (KeyManagementException e) {
 					// TODO Auto-generated catch block

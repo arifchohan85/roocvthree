@@ -52,7 +52,7 @@ import com.egeroo.roocvthree.directory.DirectoryService;
 import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
 import com.egeroo.roocvthree.intent.Intent;
-import com.egeroo.roocvthree.intent.IntentService;
+
 import com.egeroo.roocvthree.roocconfig.RoocConfig;
 
 import com.egeroo.roocvthree.roocconfig.RoocConfigService;

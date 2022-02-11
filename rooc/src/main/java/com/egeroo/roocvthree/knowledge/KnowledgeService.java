@@ -49,6 +49,8 @@ public class KnowledgeService {
 	
 	ValidationJson validatejson = new ValidationJson();
 	
+	public String retDataPath;
+	
 	public KnowledgeResponse getCreate(String tenant,KnowledgeRequest knowledge,String token) 
 	{
 		
@@ -68,6 +70,14 @@ public class KnowledgeService {
             throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no eng credential found.");
         }
 		
+		NodeSource nscheckAvailable= nsservice.getBynodeid(tenant, knowledge.getId());
+		if (nscheckAvailable == null) {
+            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no node found.");
+        }
+		else {
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Please Change Node ID,id has been taken.");
+		}
+		
 		boolean isEmptyparent = knowledge.getParentId() == null || knowledge.getParentId().trim().length() == 0;
 		
 		if(!isEmptyparent)
@@ -86,6 +96,8 @@ public class KnowledgeService {
 		{
 			//get root category
 			dirparent = dirservice.getViewdirectorybyname(tenant,result.getRootcategory());
+			
+			directoryparentid = dirparent.getDirectoryid();
 		}
 
 		System.out.println(dirparent);
@@ -120,10 +132,12 @@ public class KnowledgeService {
 		   ATAU KALAU NGGA KITA NGGA USAH BUAT INTENT STANDARD DULU
 		*/
 		
+		this.retDataPath="";
 		String getmap = "";
 		if(dirparent.getParentid()>0)
 		{
-			getmap = dirservice.mapView(dirparent.getParentid(),tenant);
+			getmap = this.mapView(dirparent.getParentid(),tenant);
+			//getmap = this.mapView(dirparent.getDirectoryid(),tenant);
 		}
 		else
 		{
@@ -136,8 +150,20 @@ public class KnowledgeService {
 		System.out.println("MapView is : " + getmap);
 		
 		
+		boolean isEmptyfoldername = knowledge.getFolderName() == null || knowledge.getFolderName().trim().length() == 0;
+		
 		directory.setParentid(directoryparentid);
-		directory.setName(knowledge.getFolderName());
+		
+		
+		if(isEmptyfoldername)
+		{
+			directory.setName(knowledge.getIntentName());
+		}
+		else
+		{
+			directory.setName(knowledge.getFolderName());
+		}
+		
 		
 		JSONObject postdata = new JSONObject();
 		JSONObject jsonObject;
@@ -150,12 +176,14 @@ public class KnowledgeService {
 		String lastinsertuserid = "";
 		try 
 		{
+			
+			
 			NodeSource nssave = new NodeSource();
 			
 			if(knowledge.getType().toUpperCase().equals("FOLDER"))
 			{
 				//directory biasa
-				dirservice.retDataPath ="";
+				//dirservice.retDataPath ="";
 				
 				directory.setCategorymode("STANDARD");
 				
@@ -194,7 +222,7 @@ public class KnowledgeService {
 			else if(knowledge.getType().toUpperCase().equals("STANDARD"))
 			{
 				directory.setCategorymode("QUESTIONNAIRE_BRANCHING");
-				
+				//directory.setName(knowledge.getIntentName());
 				
 				//intent
 				isSaveintent = true;
@@ -217,9 +245,13 @@ public class KnowledgeService {
 				postdataintent.put("id", MaxIntent);
 				postdataintent.put("name", knowledge.getIntentName());
 				postdataintent.put("answer", ".");
+				
 				postdataintent.put("map", getmap);
 				
-				postdataintent.put("parentId", dirparent.getDirectoryid());
+				//directoryparentid = ns.getDirectoryid();
+				//intentparentid = ns.getIntentid();
+				
+				postdataintent.put("parentId", intentparentid);
 				
 				//saveintentnew.setParentid(dirparent.getDirectoryid());
 				
@@ -246,9 +278,6 @@ public class KnowledgeService {
 				    }
 				   
 				}
-				
-				
-				
 			}
 			
 			if(isAllowSave)
@@ -257,11 +286,16 @@ public class KnowledgeService {
 				directory.setReticategoryid(retdirectoryid);
 				lastinsertuserid =dirservice.getCreate(tenant,directory);
 				
+				
+				
 				nssave.setType(knowledge.getType());
 				nssave.setNodeid(knowledge.getId());
 				nssave.setParentnodeid(knowledge.getParentId());
 				nssave.setDirectoryid(Integer.parseInt(lastinsertuserid));
-				
+				nssave.setCreatedby(directory.getCreatedby());
+				nssave.setCreatedtime(directory.getCreatedtime());
+				nssave.setUpdatedby(directory.getUpdatedby());
+				nssave.setUpdatedtime(directory.getUpdatedtime());
 				
 				if(isSaveintent)
 				{
@@ -269,6 +303,12 @@ public class KnowledgeService {
 					
 					saveintentnew.setDirectoryid(Integer.parseInt(lastinsertuserid));
 					saveintentnew.setIntentparentid(intentparentid);
+					saveintentnew.setQuestion(knowledge.getIntentName());
+					
+					saveintentnew.setCreatedby(directory.getCreatedby());
+					saveintentnew.setCreatedtime(directory.getCreatedtime());
+					saveintentnew.setUpdatedby(directory.getUpdatedby());
+					saveintentnew.setUpdatedtime(directory.getUpdatedtime());
 					
 					JSONObject pdcomposer = new JSONObject();
 
@@ -414,10 +454,12 @@ public class KnowledgeService {
 		   ATAU KALAU NGGA KITA NGGA USAH BUAT INTENT STANDARD DULU
 		*/
 		
+		this.retDataPath="";
 		String getmap = "";
 		if(dirparent.getParentid()>0)
 		{
-			getmap = dirservice.mapView(dirparent.getParentid(),tenant);
+			getmap = this.mapView(dirparent.getParentid(),tenant);
+			//getmap = this.mapView(dirparent.getDirectoryid(),tenant);
 		}
 		else
 		{
@@ -443,6 +485,9 @@ public class KnowledgeService {
 		
 		try
 		{
+			
+			
+			
 			boolean isEmptycurrentupdatekey = knowledge.getId() == null || knowledge.getId().trim().length() == 0;
 			
 			if(!isEmptycurrentupdatekey)
@@ -537,12 +582,11 @@ public class KnowledgeService {
 				
 
 				saveintentnew.setUpdatedby(directory.getUpdatedby());
-
 				saveintentnew.setUpdatedtime(directory.getUpdatedtime());
 
 				postdataintent.put("Authorization", token);
 				postdataintent.put("id", nsupdatekey.getIntentid());
-				//postdata.put("categoryid", retparID);
+				postdata.put("question", knowledge.getIntentName());
 				postdataintent.put("name", knowledge.getIntentName());
 				postdataintent.put("answer", ".");
 				
@@ -582,6 +626,31 @@ public class KnowledgeService {
 		}
 		
 		return kres;
+	}
+	
+	public String mapView(int InitcatID,String tenant)
+	{
+		//Directory dirresult = dirmapMapper.findOne(InitcatID);
+		Directory dirresult = dirservice.getView(tenant,InitcatID);
+		//return result;
+		if(dirresult == null)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid parent data");
+		}
+		
+		if(dirresult.getParentid() >0)
+		{
+			 //$this->createCatmapView($modelfindParentretID->ParentID);
+			this.mapView(dirresult.getParentid(),tenant);
+			this.retDataPath = this.retDataPath +"->"+ dirresult.getName();
+		}
+		else if(dirresult.getParentid() <=0)
+		{
+			//$this->retDataPath = $this->retDataPath .$modelfindParentretID->Name;
+			this.retDataPath = this.retDataPath + dirresult.getName();
+		}
+		
+		return this.retDataPath;
 	}
 
 }

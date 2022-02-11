@@ -3,7 +3,7 @@ package com.egeroo.roocvthree.dashboard;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,16 +38,7 @@ public class DashboardController {
 	
 	@RequestMapping(method=RequestMethod.GET,value="/listdbuser")							
 	public DashboardUser getDbuser(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
-		//Dashboard obj = new Dashboard();
-		/*Date nowfrom = new Date(datefrom);
-		Date nowto = new Date(dateto);
-		obj.setDateto(nowto);
-		obj.setDatefrom(nowfrom);
 		
-		System.out.println("passing date from :"+datefrom);
-		System.out.println("passing date to :"+dateto);
-		System.out.println("generate date from :"+nowfrom);
-		System.out.println("generate date to :"+nowto);*/
 		
 		DashboardUser result = service.findDbuser(headers.get("tenantID").get(0),datefrom,dateto);
 		return result;
@@ -141,59 +132,7 @@ public class DashboardController {
 		return result;
 	}
 	
-	/*@RequestMapping(method=RequestMethod.GET,value="/listdbtrained")
-	public Dashboard getDbtrained(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
-		if(datefrom == null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date from in request url");
-		}
-		else if(dateto == null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date to in request url");
-		}
-		
-		Dashboard obj = new Dashboard();
-		Date nowfrom = new Date();
-		Date nowto = new Date();
-		obj.setDateto(dateto);
-		obj.setDatefrom(datefrom);
-		
-		System.out.println("passing date from :"+datefrom);
-		System.out.println("passing date to :"+dateto);
-		System.out.println("generate date from :"+nowfrom);
-		System.out.println("generate date to :"+nowto);
-		
-		Dashboard result = service.findDbtrained(headers.get("tenantID").get(0),obj.getDatefrom(),obj.getDateto());
-		return result;
-	}
-	*/
 	
-	/*@RequestMapping(method=RequestMethod.GET,value="/listdbincomingmessage")
-	public Dashboard getDbincomingmessage(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
-		if(datefrom == null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date from in request url");
-		}
-		else if(dateto == null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "expected date to in request url");
-		}
-		
-		Dashboard obj = new Dashboard();
-		Date nowfrom = new Date();
-		Date nowto = new Date();
-		obj.setDateto(dateto);
-		obj.setDatefrom(datefrom);
-		
-		System.out.println("passing date from :"+datefrom);
-		System.out.println("passing date to :"+dateto);
-		System.out.println("generate date from :"+nowfrom);
-		System.out.println("generate date to :"+nowto);
-		
-		Dashboard result = service.findDbincomingmessage(headers.get("tenantID").get(0),obj.getDatefrom(),obj.getDateto());
-		return result;
-	}
-	*/
 	@RequestMapping(method=RequestMethod.GET,value="/listdbtrained")
 	public Dashboard getDbtrained(@RequestHeader HttpHeaders headers,HttpServletRequest request,Integer setperiod) {
 		if(setperiod == null)
@@ -382,11 +321,7 @@ public class DashboardController {
 		return result;
 	}
 	
-	/*@RequestMapping(method=RequestMethod.GET,value="/listdbchatbotrate")
-	public List<DashboardRating> findDbchatbotrate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
-		List<DashboardRating> result = service.findDbchatbotrate(headers.get("tenantID").get(0),datefrom,dateto);
-		return result;
-	}*/
+	
 	@RequestMapping(method=RequestMethod.GET,value="/listdbchatbotrate")
 	public DashboardRating findDbchatbotrate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestParam("datefrom") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date datefrom,@RequestParam("dateto") @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date dateto) {
 		DashboardRating result = service.findDbchatbotrate(headers.get("tenantID").get(0),datefrom,dateto);

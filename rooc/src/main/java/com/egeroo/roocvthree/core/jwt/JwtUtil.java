@@ -93,6 +93,7 @@ public class JwtUtil {
             System.out.println("Expiration: " + claims.getExpiration());*/
             return claims;
     	} catch (JwtException | ClassCastException e) {
+    		e.printStackTrace();
             //return null;
     		//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine access token not found.");
         	throw new CoreException(HttpStatus.UNAUTHORIZED, "Invalid token signature");

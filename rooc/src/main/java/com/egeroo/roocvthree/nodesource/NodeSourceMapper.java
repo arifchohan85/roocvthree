@@ -21,7 +21,7 @@ public interface NodeSourceMapper {
     public NodeSource findOnebyNodeid(String nodeid);
 	
 	@SelectKey(statement = "currval('nodesourceid')", keyProperty = "nodesourceid", before = false , resultType = int.class)
-	@Select("Insert into ms_eng_nodesource(type,nodesourceid,directoryid,nodeid,parentnodeid,previousnodeid"
+	@Select("Insert into ms_eng_nodesource(type,intentid,directoryid,nodeid,parentnodeid,previousnodeid"
 			+ ",createdby,updatedby,createdtime,updatedtime) "
 			+ "VALUES (#{type},#{intentid},#{directoryid},#{nodeid},#{parentnodeid},#{previousnodeid}"
 			+ ",#{createdby},#{updatedby},#{createdtime},#{updatedtime}) "

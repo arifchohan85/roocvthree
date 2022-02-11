@@ -188,18 +188,22 @@ public class DashboardService {
 	 * 
 	 * Start Dashboard v3
 	 */
+	@SuppressWarnings("rawtypes")
 	public Map getIntent(String tenant,Date datefrom, Date dateto) {
 		DashboardMapper appMapper = new DashboardMapperImpl(tenant);		
 		return appMapper.getIntent(datefrom,dateto);  
     }
+	@SuppressWarnings("rawtypes")
 	public List<Map> getListChannel(String tenant,Date datefrom, Date dateto) {
 		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
 		return appMapper.getListChannel(datefrom,dateto);  
     }
+	@SuppressWarnings("rawtypes")
 	public List<Map> getIncoming(String tenant,Date datefrom, Date dateto) {
 		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
 		return appMapper.getIncoming(datefrom,dateto);  
     }
+	@SuppressWarnings("rawtypes")
 	public List<Map> getListKPI(String tenant,Date datefrom, Date dateto) {
 		DashboardMapper appMapper = new DashboardMapperImpl(tenant);
 		return appMapper.getListKPI(datefrom,dateto);  
@@ -214,6 +218,7 @@ public class DashboardService {
     }
 
 	
+	@SuppressWarnings("rawtypes")
 	public ResultData getResult(List<Map> dataList) {
 		ResultData results = new ResultData();
 		String[] label = new String[dataList.size()];
@@ -228,6 +233,7 @@ public class DashboardService {
 		return results;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public ResultData getResultChannel(List<Map> dataList) {
 		ResultData results = new ResultData();
 		String[] label = new String[dataList.size()];
@@ -242,6 +248,7 @@ public class DashboardService {
 		return results;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public ResultData getResultKPI(List<Map> dataList) {
 		ResultData results = new ResultData();
 		String[] label = new String[dataList.size()];
@@ -255,6 +262,7 @@ public class DashboardService {
 		results.setSeries(series);		
 		return results;
 	}
+	@SuppressWarnings("rawtypes")
 	public Dashboardv3 getAllDashboard(String tenant,Date datefrom, Date dateto, MonitorService mservice){
 		Dashboardv3 dataAll = new Dashboardv3();
 		try {			
