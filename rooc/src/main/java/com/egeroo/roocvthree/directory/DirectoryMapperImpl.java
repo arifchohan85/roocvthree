@@ -184,13 +184,13 @@ public class DirectoryMapperImpl extends BaseDAO implements DirectoryMapper{
 	}
 
 	@Override
-	public List<DirectoryIntent> findAlldirectoryintent() {
+	public List<DirectoryTree> findAlldirectorytree() {
 		System.out.println("dir List : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		List<DirectoryIntent> ec = null;
+		List<DirectoryTree> ec = null;
 		try{
 			DirectoryMapper ecMapper = sqlSession.getMapper(DirectoryMapper.class);
-			ec = ecMapper.findAlldirectoryintent();
+			ec = ecMapper.findAlldirectorytree();
 			log.info("getdir data");
 		}catch(PersistenceException e){
 			log.debug(e + "error get dir data");
@@ -441,10 +441,10 @@ public class DirectoryMapperImpl extends BaseDAO implements DirectoryMapper{
 	}
 
 	@Override
-	public List<Directory> extractDirectory() {
+	public List<DirectoryExtract> extractDirectory() {
 		System.out.println("dir List : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		List<Directory> ec = null;
+		List<DirectoryExtract> ec = null;
 		try{
 			DirectoryMapper ecMapper = sqlSession.getMapper(DirectoryMapper.class);
 			ec = ecMapper.extractDirectory();
@@ -754,5 +754,23 @@ public class DirectoryMapperImpl extends BaseDAO implements DirectoryMapper{
 		return ec;
 	}
 	/*end v3*/
+
+	@Override
+	public List<IntentTree> findAllintenttree() {
+		System.out.println("dir List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<IntentTree> ec = null;
+		try{
+			DirectoryMapper ecMapper = sqlSession.getMapper(DirectoryMapper.class);
+			ec = ecMapper.findAllintenttree();
+			log.info("getdir data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get dir data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
 
 }

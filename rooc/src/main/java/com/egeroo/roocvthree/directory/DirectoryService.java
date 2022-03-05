@@ -20,7 +20,7 @@ public class DirectoryService {
 		return appMapper.findAll();	 
 	}
 	
-	public List<Directory> getDirectoryextract(String tenant) {
+	public List<DirectoryExtract> getDirectoryextract(String tenant) {
 		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
 		return appMapper.extractDirectory();	 
 	}
@@ -30,9 +30,14 @@ public class DirectoryService {
 		return appMapper.findAlldirectory();	 
 	}
 	
-	public List<DirectoryIntent> getDirectoryintent(String tenant) {
+	public List<DirectoryTree> getDirectorytree(String tenant) {
 		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
-		return appMapper.findAlldirectoryintent();	 
+		return appMapper.findAlldirectorytree();	 
+	}
+	
+	public List<IntentTree> getIntenttree(String tenant) {
+		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
+		return appMapper.findAllintenttree();	 
 	}
 	
 	public List<Directory> getDirectory(String tenant) {

@@ -1,10 +1,15 @@
 package com.egeroo.roocvthree.knowledge;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 
+import com.egeroo.roocvthree.directory.DirectoryTree;
+import com.egeroo.roocvthree.directory.IntentTree;
 import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
 
 @RestController
@@ -20,6 +27,8 @@ public class KnowledgeController {
 	
 	@Autowired
     private KnowledgeService service;
+	
+	
 	
 	TrailingRecordBase trb = new TrailingRecordBase();
 	
@@ -58,5 +67,38 @@ public class KnowledgeController {
 		KnowledgeResponse kres = service.getUpdate(headers.get("tenantID").get(0),obj,token);
 		return kres;
 	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/knowledgetreebak05032022")
+	public KnowledgeTree getDirectoryintentbak05032022(@RequestHeader HttpHeaders headers) {
+		List<DirectoryTree> resultdirtree = service.getDirectorytree(headers.get("tenantID").get(0));
+		List<IntentTree> resultintenttree = service.getIntenttree(headers.get("tenantID").get(0));
+		
+		KnowledgeTree ktr = new KnowledgeTree();
+		ktr.setDirtree(resultdirtree);
+		ktr.setIntenttree(resultintenttree);
+		
+		return ktr;
+	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/knowledgetree")
+	public String getKnowledgetree(@RequestHeader HttpHeaders headers) {
+		JSONArray resulttree = service.getAlltree(headers.get("tenantID").get(0));
+		System.out.println("====FINISH resulttree====");
+		System.out.println(resulttree.toString());
+		return resulttree.toString();
+	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/tree")
+	public ResponseEntity<List<List<? extends Object>>> tree(@RequestHeader HttpHeaders headers) {
+		List<DirectoryTree> resultdirtree = service.getDirectorytree(headers.get("tenantID").get(0));
+		List<IntentTree> resultintenttree = service.getIntenttree(headers.get("tenantID").get(0));
+		return ResponseEntity.ok(Arrays.asList(resultdirtree, resultintenttree));
+	}
+	
+//	@GetMapping("/multiple")
+//	  public ResponseEntity<List<Pojo>> multiple() {
+//	    return ResponseEntity.ok(Arrays.asList(new Pojo("one"), new Pojo("two")));
+//	  }
+	
 
 }

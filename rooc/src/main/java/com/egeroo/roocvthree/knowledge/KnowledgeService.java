@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,7 +16,11 @@ import com.egeroo.roocvthree.core.curl.HttpPostReq;
 import com.egeroo.roocvthree.core.error.CoreException;
 import com.egeroo.roocvthree.core.error.ValidationJson;
 import com.egeroo.roocvthree.directory.Directory;
+import com.egeroo.roocvthree.directory.DirectoryMapper;
+import com.egeroo.roocvthree.directory.DirectoryMapperImpl;
 import com.egeroo.roocvthree.directory.DirectoryService;
+import com.egeroo.roocvthree.directory.DirectoryTree;
+import com.egeroo.roocvthree.directory.IntentTree;
 import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
 import com.egeroo.roocvthree.intent.Intent;
@@ -136,8 +141,8 @@ public class KnowledgeService {
 		String getmap = "";
 		if(dirparent.getParentid()>0)
 		{
-			getmap = this.mapView(dirparent.getParentid(),tenant);
-			//getmap = this.mapView(dirparent.getDirectoryid(),tenant);
+			//getmap = this.mapView(dirparent.getParentid(),tenant);
+			getmap = this.mapView(dirparent.getDirectoryid(),tenant);
 		}
 		else
 		{
@@ -291,6 +296,12 @@ public class KnowledgeService {
 				nssave.setType(knowledge.getType());
 				nssave.setNodeid(knowledge.getId());
 				nssave.setParentnodeid(knowledge.getParentId());
+				boolean isEmptypreviousnode = knowledge.getPreviousId() == null || knowledge.getPreviousId().trim().length() == 0;
+				if(!isEmptypreviousnode)
+				{
+					nssave.setPreviousnodeid(knowledge.getPreviousId());
+				}
+				
 				nssave.setDirectoryid(Integer.parseInt(lastinsertuserid));
 				nssave.setCreatedby(directory.getCreatedby());
 				nssave.setCreatedtime(directory.getCreatedtime());
@@ -303,7 +314,7 @@ public class KnowledgeService {
 					
 					saveintentnew.setDirectoryid(Integer.parseInt(lastinsertuserid));
 					saveintentnew.setIntentparentid(intentparentid);
-					saveintentnew.setQuestion(knowledge.getIntentName());
+					saveintentnew.setQuestion(directory.getName());
 					
 					saveintentnew.setCreatedby(directory.getCreatedby());
 					saveintentnew.setCreatedtime(directory.getCreatedtime());
@@ -350,7 +361,6 @@ public class KnowledgeService {
 					}
 					
 					lastinsertintentid = intentservice.getCreate(tenant,saveintentnew);
-					
 				}
 				
 				int nssaveres = nsservice.getCreate(tenant, nssave);
@@ -458,8 +468,8 @@ public class KnowledgeService {
 		String getmap = "";
 		if(dirparent.getParentid()>0)
 		{
-			getmap = this.mapView(dirparent.getParentid(),tenant);
-			//getmap = this.mapView(dirparent.getDirectoryid(),tenant);
+			//getmap = this.mapView(dirparent.getParentid(),tenant);
+			getmap = this.mapView(dirparent.getDirectoryid(),tenant);
 		}
 		else
 		{
@@ -472,8 +482,24 @@ public class KnowledgeService {
 		System.out.println("MapView is : " + getmap);
 		
 		
+
+		
+		boolean isEmptyfoldername = knowledge.getFolderName() == null || knowledge.getFolderName().trim().length() == 0;
+		
 		directory.setParentid(directoryparentid);
-		directory.setName(knowledge.getFolderName());
+		
+		
+		String dirname ="";
+		if(isEmptyfoldername)
+		{
+			directory.setName(knowledge.getIntentName());
+		}
+		else
+		{
+			directory.setName(knowledge.getFolderName());
+		}
+		
+		dirname = directory.getName();
 		
 		JSONObject postdata = new JSONObject();
 		JSONObject jsonObject;
@@ -485,9 +511,7 @@ public class KnowledgeService {
 		
 		try
 		{
-			
-			
-			
+		
 			boolean isEmptycurrentupdatekey = knowledge.getId() == null || knowledge.getId().trim().length() == 0;
 			
 			if(!isEmptycurrentupdatekey)
@@ -529,7 +553,7 @@ public class KnowledgeService {
 				postdata.put("Authorization", token);
 				//postdata.put("parentId", retparID);
 				postdata.put("id", directory.getReticategoryid());
-				postdata.put("name", knowledge.getFolderName());
+				postdata.put("name", dirname);
 				postdata.put("description", knowledge.getFolderName());
 				
 				postret = hpr.setPostData(result.getApi()+"/category/update",postdata);
@@ -559,8 +583,8 @@ public class KnowledgeService {
 					throw new CoreException(HttpStatus.NOT_MODIFIED, "Not Saved.");
 				}
 				
-				directory.setName(knowledge.getFolderName());
-				directory.setDescription(knowledge.getFolderName());
+				directory.setName(dirname);
+				directory.setDescription(dirname);
 				directory.setDirectoryid(dircurrent.getDirectoryid());
 				
 				lastinsertuserid =dirservice.getUpdate(tenant,directory);
@@ -575,7 +599,7 @@ public class KnowledgeService {
 				
 				saveintentnew.setIntentid(nsupdatekey.getIntentid());
 				saveintentnew.setAnswer(".");
-				saveintentnew.setQuestion(knowledge.getIntentName());
+				saveintentnew.setQuestion(dirname);
 				saveintentnew.setDirectoryid(directoryparentid);
 				saveintentnew.setIntentparentid(intentparentid);
 				
@@ -586,8 +610,8 @@ public class KnowledgeService {
 
 				postdataintent.put("Authorization", token);
 				postdataintent.put("id", nsupdatekey.getIntentid());
-				postdata.put("question", knowledge.getIntentName());
-				postdataintent.put("name", knowledge.getIntentName());
+				postdata.put("question", dirname);
+				postdataintent.put("name", dirname);
 				postdataintent.put("answer", ".");
 				
 				postret = hpr.setPostData(result.getApi()+"/intent/update",postdataintent);
@@ -626,6 +650,97 @@ public class KnowledgeService {
 		}
 		
 		return kres;
+	}
+	
+	public List<DirectoryTree> getDirectorytree(String tenant) {
+		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
+		return appMapper.findAlldirectorytree();	 
+	}
+	
+	public List<IntentTree> getIntenttree(String tenant) {
+		DirectoryMapper appMapper = new DirectoryMapperImpl(tenant);
+		return appMapper.findAllintenttree();	 
+	}
+	
+	public JSONArray getAlltree(String tenant)
+	{
+		List<DirectoryTree> resultdirtree = this.getDirectorytree(tenant);
+		List<IntentTree> resultintenttree = this.getIntenttree(tenant);
+		
+		System.out.println("====CREATING JSONARRAY====");
+		
+		JSONArray ja = new JSONArray();
+		System.out.println("====Lopping Directory====");
+		if(resultdirtree == null)
+		{
+			System.out.println("No Folder Data");
+		}
+		else
+		{
+//			resultdirtree.forEach(item->{
+//				System.out.println("====CREATING JSONObject====");
+//				JSONObject treedata = new JSONObject();
+//				
+//				System.out.println("====PUT JSONObject====");
+//				treedata.put("folderName", item.getFolderName());
+//				treedata.put("id", item.getId());
+//				treedata.put("parent", item.getParent());
+//				treedata.put("previousId", item.getPreviousId());
+//				treedata.put("type", item.getType());
+//				
+//				System.out.println("====PUT JSONArray====");
+//				ja.put(treedata);
+//			});
+			int size = resultdirtree.size();
+			System.out.println(size);
+			for (int i=0; i<size; i++)
+			{
+				System.out.println("====CREATING JSONObject===="+resultdirtree.get(i).getFolderName());
+				JSONObject treedata = new JSONObject();
+				System.out.println("====PUT JSONObject====");
+				treedata.put("folderName", resultdirtree.get(i).getFolderName());
+				treedata.put("id", resultdirtree.get(i).getId());
+				treedata.put("parent", resultdirtree.get(i).getParent());
+				treedata.put("previousId", resultdirtree.get(i).getPreviousId());
+				treedata.put("type", resultdirtree.get(i).getType());
+				
+				System.out.println("====PUT JSONArray DIREC====");
+				ja.put(treedata);
+			}
+		}
+		
+		System.out.println("====FINISH JSONArray DIRECTORY====");
+		System.out.println(ja);
+		
+		if(resultintenttree == null)
+		{
+			System.out.println("No Intent Data");
+		}
+		else
+		{
+			System.out.println(resultintenttree.size());
+			resultintenttree.forEach(item->{
+				System.out.println("====CREATING JSONObject Intent====");
+				JSONObject treedata = new JSONObject();
+				
+				System.out.println("====PUT JSONObject Intent===="+item.getIntentName());
+				treedata.put("intentName", item.getIntentName());
+				treedata.put("id", item.getId());
+				treedata.put("parent", item.getParent());
+				treedata.put("previousId", item.getPreviousId());
+				treedata.put("type", item.getType());
+				treedata.put("multipleCondition", item.getMultipleCondition());
+				
+				System.out.println("====CREATING JSONArray====");
+				ja.put(treedata);
+			});
+		}
+		
+		System.out.println("====FINISH JSONArray Intent====");
+		System.out.println(ja);
+		
+		
+		return ja;
 	}
 	
 	public String mapView(int InitcatID,String tenant)

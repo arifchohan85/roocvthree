@@ -9,6 +9,10 @@ import com.egeroo.roocvthree.core.base.Base;
 @Table( name = "tr_eng_maxintent" )
 public class MaxIntent extends Base {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int intentid;
 	private int recordid;
 	

@@ -59,8 +59,8 @@ public class DirectoryController {
 	}
 	
 	@RequestMapping(method=RequestMethod.GET,value="/extractdirectory")
-	public List<Directory> getExtractdirectory(@RequestHeader HttpHeaders headers) {
-		List<Directory> result = service.getDirectoryextract(headers.get("tenantID").get(0));
+	public List<DirectoryExtract> getExtractdirectory(@RequestHeader HttpHeaders headers) {
+		List<DirectoryExtract> result = service.getDirectoryextract(headers.get("tenantID").get(0));
 		return result;
 	}
 	
@@ -83,11 +83,7 @@ public class DirectoryController {
 		return prettyJsonString;
 	}
 	
-	@RequestMapping(method=RequestMethod.GET,value="/listdirectoryintent")
-	public List<DirectoryIntent> getDirectoryintent(@RequestHeader HttpHeaders headers) {
-		List<DirectoryIntent> result = service.getDirectoryintent(headers.get("tenantID").get(0));
-		return result;
-	}
+	
 	
 	
 	

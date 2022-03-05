@@ -134,7 +134,7 @@ public interface DirectoryMapper {
 	
 	
 	
-	@Select(" WITH RECURSIVE subordinates AS ( \n" + 
+	/*@Select(" WITH RECURSIVE subordinates AS ( \n" + 
 			" SELECT \n" + 
 			" parentid as parentId, \n" + 
 			" directoryid as theId, \n" + 
@@ -182,7 +182,7 @@ public interface DirectoryMapper {
 			" order by theId,parentId \n" + 
 			" ; " + 
 			" ")
-    public List<DirectoryIntent> findAlldirectoryintent();
+    public List<DirectoryIntent> findAlldirectoryintent();*/
 
 	
 	@Select(" WITH RECURSIVE subordinates AS (\n" +
@@ -294,30 +294,64 @@ public interface DirectoryMapper {
 	
 	
 	
-	@Select(" WITH RECURSIVE dirmaptree AS\n" + 
-			" (SELECT *\n" + 
-			" , CAST(' # ' As varchar(1000)) As path\n" + 
-			" FROM ms_eng_directory\n" + 
-			" WHERE (parentid IS null or parentid<=0)\n" + 
-			" UNION ALL\n" + 
-			" SELECT si.*\n" + 
-			" ,CAST(sp.path || '->' || sp.name As varchar(1000)) As path\n" + 
-			" FROM ms_eng_directory As si\n" + 
-			" INNER JOIN dirmaptree AS sp\n" + 
-			" ON (si.parentid = sp.directoryid)\n" + 
-			" )\n" + 
-			" SELECT *\n" + 
-			" ,replace(replace(path,' # ->',''),' # ','') as directorymap\n" + 
-			" ,(select name from ms_eng_directory where dirmaptree.switchingid=ms_eng_directory.directoryid \n" + 
-			" and dirmaptree.switchingid is not null limit 1) as switchingname\n" + 
-			" ,(select question from ms_eng_intent where dirmaptree.intentid=ms_eng_intent.intentid \n" + 
-			" and dirmaptree.intentid is not null limit 1) as intentname\n" + 
-			" FROM dirmaptree\n" + 
-			" ORDER BY directoryid asc;   ")
-    public List<Directory> extractDirectory();
+	@Select(" WITH RECURSIVE dirmaptree AS\n"
+			+ " (SELECT *\n"
+			+ " , CAST(' # ' As varchar(1000)) As path\n"
+			+ " FROM ms_eng_directory\n"
+			+ " WHERE (parentid IS null or parentid<=0)\n"
+			+ " UNION ALL\n"
+			+ " SELECT si.*\n"
+			+ " ,CAST(sp.path || '->' || sp.name As varchar(1000)) As path\n"
+			+ " FROM ms_eng_directory As si\n"
+			+ " INNER JOIN dirmaptree AS sp\n"
+			+ " ON (si.parentid = sp.directoryid)\n"
+			+ " )\n"
+			+ " SELECT name,description,path\n"
+			+ " ,replace(replace(path,' # ->',''),' # ','') as directorymap\n"
+			+ " ,nodeid,parentnodeid\n"
+			+ " ,ns.type\n"
+			+ " FROM dirmaptree dmt\n"
+			+ " inner join ms_eng_nodesource ns\n"
+			+ " on dmt.directoryid=ns.directoryid\n"
+			+ " where ns.type='folder'\n"
+			+ " ORDER BY dmt.directoryid asc;  ")
+    public List<DirectoryExtract> extractDirectory();
 	
 	
+	/*V3*/
+	@Select(" select\n"
+			+ " name as foldername\n"
+			+ " ,s.nodeid as id\n"
+			+ " ,s.parentnodeid as parent\n"
+			+ " ,s.previousnodeid as previousid\n"
+			+ " ,s.type\n"
+			+ " from ms_eng_directory d\n"
+			+ " inner join ms_eng_nodesource s\n"
+			+ " on d.directoryid=s.directoryid\n"
+			+ " where d.parentid>0\n"
+			+ " and s.type='folder'\n"
+			+ " order by d.directoryid ASC "
+			
+			+ "; ")
+    public List<DirectoryTree> findAlldirectorytree();
 	
+	@Select(" select\n"
+			+ " name as intentname\n"
+			+ " ,s.nodeid as id\n"
+			+ " ,s.parentnodeid as parent\n"
+			+ " ,s.previousnodeid as previousid\n"
+			+ " ,s.type\n"
+			+ " ,false as multiplecondition\n"
+			+ " from ms_eng_directory d\n"
+			+ " inner join ms_eng_nodesource s\n"
+			+ " on d.directoryid=s.directoryid\n"
+			+ " where d.parentid>0\n"
+			+ " and s.type='standard'\n"
+			+ " order by d.directoryid ASC " 
+			
+			+ "; ")
+    public List<IntentTree> findAllintenttree();
+	/*V3*/
 	
 	
 
