@@ -3,7 +3,10 @@ package com.egeroo.roocvthree.core.curl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -25,6 +28,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
@@ -40,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+
+import com.egeroo.roocvthree.composer.ComposerRequest;
 import com.egeroo.roocvthree.core.error.CoreException;
 import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
@@ -774,7 +780,7 @@ public class HttpPostReq {
             
             System.out.println("\nSending 'POST' request to URL : " + restUrl);
     		System.out.println("Post parameters : " + post.getEntity());
-    		
+    		System.out.println("postdata is  : " + postdata);
             
             //HttpResponse responseser = null;
             CloseableHttpResponse response = null;
@@ -1216,138 +1222,6 @@ public class HttpPostReq {
     }
 	
 
-
-	public String setPostDataldapbcabak19092019(String restUrl,String tenantID,JSONObject postdata) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
-    {
-		
-		 SSLContextBuilder builder = new SSLContextBuilder();
-		    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-		    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-		            builder.build());
-		    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
-		            sslsf).build();
-
-		    
-        
-        
-        RoocConfig resultappid = new RoocConfig();
-		resultappid = rcservice.findByconfigkey(tenantID,"applicationid");
-		
-		
-		if (resultappid == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-        }
-		
-		RoocConfig resultldappostapi = new RoocConfig();
-		resultldappostapi = rcservice.findByconfigkey(tenantID,"ldapapipost");
-		
-		if (resultldappostapi == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no post url found.");
-        }
-		
-		RoocConfig resultldaploginposturl = new RoocConfig();
-		resultldaploginposturl = rcservice.findByconfigkey(tenantID,"ldaploginposturl");
-		
-		if (resultldaploginposturl == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no post uri found.");
-        }
-		
-		
-		RoocConfig resultclientid = new RoocConfig();
-		resultclientid = rcservice.findByconfigkey(tenantID,"clientid");
-		
-		if (resultclientid == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no clientid found.");
-        }
-		
-		RoocConfig resultmybcaapp = new RoocConfig();
-		resultmybcaapp = rcservice.findByconfigkey(tenantID,"X-MYBCA-APPLICATION");
-		
-		if (resultmybcaapp == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no mybcaapp found.");
-        }
-		
-		RoocConfig resultencryptionkey = new RoocConfig();
-		resultencryptionkey = rcservice.findByconfigkey(tenantID,"encryptionkey");
-		
-		if (resultencryptionkey == null) {
-            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no encryptionkey found.");
-        }
-		
-		
-		restUrl = resultldappostapi.getConfigvalue()+""+resultldaploginposturl.getConfigvalue();
-		HttpPost post = new HttpPost(restUrl);
-     	
-		
-		
-        post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
-        post.setHeader("ClientID", ""+resultclientid.getConfigvalue());
-        post.setHeader("ApplicationID", ""+resultappid.getConfigvalue());
-        post.setHeader(""+resultmybcaapp.getConfigkey(), ""+resultmybcaapp.getConfigvalue());
-        post.setHeader("AUTHORIZATION", "Beaerer " + ""+Base64.encodeBase64(resultencryptionkey.getConfigvalue().getBytes()));
-        post.setHeader("Accept", "application/json;charset=UTF-8");
-        post.setHeader("X-Stream" , "true");
-            
-		
-       
-        
-        	StringEntity params = new StringEntity(postdata.toString(),"UTF-8");
-            post.setEntity(params);
-            
-            System.out.println("\nSending 'POST' request to URL : " + restUrl);
-    		System.out.println("Post parameters : " + post.getEntity());
-    		
-            
-            //HttpResponse responseser = null;
-            CloseableHttpResponse response = null;
-            StringBuffer result = new StringBuffer();
-			try {
-				response = httpclient.execute(post);
-				
-				System.out.println("Response Code : " + 
-			            response.getStatusLine().getStatusCode());
-				
-				System.out.println("response is : " + response);
-				
-				System.out.println("response content is : " + response.getEntity().getContent().toString());
-				
-	    		
-
-	    		BufferedReader rd = null;
-				try {
-					rd = new BufferedReader(
-					 new InputStreamReader(response.getEntity().getContent()));
-				} catch (UnsupportedOperationException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				//StringBuffer result = new StringBuffer();
-	    		String line = "";
-	    		try {
-					while ((line = rd.readLine()) != null) {
-						result.append(line);
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-	    		System.out.println(result.toString());
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			finally {
-		        response.close();
-		    }
-    	
-            
-        return result.toString();
-    }
-	
-
 	public String setPostDataldapbca(String restUrl,String tenantID,JSONObject postdata) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
 	{
 
@@ -1695,7 +1569,215 @@ public class HttpPostReq {
 
 		return result.toString();
 	}
+	
+	public String setPostDataComposer(String restUrl,ComposerRequest postdata,String tenantID,String Token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+    {
+		
+		 SSLContextBuilder builder = new SSLContextBuilder();
+		    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+		            builder.build());
+		    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+		            sslsf).build();
 
+		    
+        HttpPost post = new HttpPost(restUrl);
+        
+     	
+     	
+		
+		/*String auth=new StringBuffer(username).append(":").append(password).toString();
+        byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
+        String authHeader = "Basic " + new String(encodedAuth);
+        
+        System.out.println(auth);*/
+		
+        // add header
+     	//post.setHeader("User-Agent", USER_AGENT);
+		//post.setHeader("AUTHORIZATION", authHeader);
+        //post.addHeader("content-type", "application/json");
+        //post.setHeader("Content-Type", "application/json");//application/x-www-form-urlencoded // application/json
+        //post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
+        //post.setHeader("Content-Type", "application/json;charset=UTF-8");
+        post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+        post.setHeader("Accept", "application/json;charset=UTF-8");
+        post.setHeader("X-Stream" , "true");
+        post.setHeader("tenantID" , tenantID);
+        post.setHeader("Authorization" , Token);
+            
+		
+       /* List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("grant_type", "password"));
+		urlParameters.add(new BasicNameValuePair("username", username));
+		urlParameters.add(new BasicNameValuePair("password", password));
+		urlParameters.add(new BasicNameValuePair("client_id", username));*/
+        
+        	//StringEntity params = new StringEntity(postdata.toString());
+        	StringEntity params = new StringEntity(postdata.toString(),"UTF-8");
+            post.setEntity(params);
+            
+            System.out.println("\nSending 'POST' request to URL : " + restUrl);
+    		System.out.println("Post parameters : " + post.getEntity());
+    		System.out.println("postdata parameters : " + postdata);
+    		
+            
+            //HttpResponse responseser = null;
+            CloseableHttpResponse response = null;
+            StringBuffer result = new StringBuffer();
+			try {
+				response = httpclient.execute(post);
+				
+				System.out.println("Response Code : " + 
+			            response.getStatusLine().getStatusCode());
+				
+				System.out.println("response is : " + response);
+				
+				System.out.println("response content is : " + response.getEntity().getContent().toString());
+				
+	    		
+
+	    		BufferedReader rd = null;
+				try {
+					rd = new BufferedReader(
+					 new InputStreamReader(response.getEntity().getContent()));
+				} catch (UnsupportedOperationException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				//StringBuffer result = new StringBuffer();
+	    		String line = "";
+	    		try {
+					while ((line = rd.readLine()) != null) {
+						result.append(line);
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+	    		System.out.println(result.toString());
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			finally {
+		        response.close();
+		    }
+    	
+            
+        return result.toString();
+    }
+	
+	public String setPutDataJSONObject(String restUrl,JSONObject postdata,String tenantID,String Token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+    {
+		
+		 SSLContextBuilder builder = new SSLContextBuilder();
+		    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+		            builder.build());
+		    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+		            sslsf).build();
+
+		    
+        HttpPut post = new HttpPut(restUrl);
+        
+     	
+		
+        post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+        post.setHeader("Accept", "application/json;charset=UTF-8");
+        post.setHeader("X-Stream" , "true");
+        post.setHeader("tenantID" , tenantID);
+        post.setHeader("Authorization" , Token);
+            
+		
+       
+        	StringEntity params = new StringEntity(postdata.toString(),"UTF-8");
+            post.setEntity(params);
+            
+            System.out.println("\nSending 'POST' request to URL : " + restUrl);
+    		System.out.println("Post parameters : " + post.getEntity());
+    		System.out.println("postdata parameters : " + postdata);
+    		
+            
+            //HttpResponse responseser = null;
+            CloseableHttpResponse response = null;
+            StringBuffer result = new StringBuffer();
+			try {
+				response = httpclient.execute(post);
+				
+				System.out.println("Response Code : " + 
+			            response.getStatusLine().getStatusCode());
+				
+				System.out.println("response is : " + response);
+				
+				System.out.println("response content is : " + response.getEntity().getContent().toString());
+				
+	    		
+
+	    		BufferedReader rd = null;
+				try {
+					rd = new BufferedReader(
+					 new InputStreamReader(response.getEntity().getContent()));
+				} catch (UnsupportedOperationException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				//StringBuffer result = new StringBuffer();
+	    		String line = "";
+	    		try {
+					while ((line = rd.readLine()) != null) {
+						result.append(line);
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+	    		System.out.println(result.toString());
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			finally {
+		        response.close();
+		    }
+    	
+            
+        return result.toString();
+    }
+	
+	
+	
+	public String setPutDatawithHttpURLConnection(String restUrl,JSONObject postdata,String tenantID,String Token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+    {
+		
+		
+        URL url = new URL(restUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("X-Stream" , "true");
+        connection.setRequestProperty("tenantID" , tenantID);
+        connection.setRequestProperty("Authorization" , Token);
+        
+        OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream());
+        osw.write(postdata.toString());
+        osw.flush();
+        osw.close();
+		
+	
+        System.out.println("Connection Status : "+connection.getResponseCode());
+        System.out.println("Connection Status : "+connection.getResponseMessage());
+            
+        return connection.getResponseMessage();
+    }
+	
 
 	
 

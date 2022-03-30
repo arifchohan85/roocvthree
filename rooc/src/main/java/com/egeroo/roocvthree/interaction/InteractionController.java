@@ -454,23 +454,7 @@ public class InteractionController {
 			Engine = result.getApi();
 		}
 		
-		//check engine
-        boolean isUseicontek = true;
-        
-		RoocConfig roocconfig = new RoocConfig();
-		roocconfig = roocconfigservice.findByconfigkey(request.getHeader("tenantID"),"isUseiContek");
-		if (roocconfig == null) {
-            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-			System.out.print("we will be using default engine (icontek),because no config found");
-        }
-		else
-		{
-			if(Integer.parseInt(roocconfig.getConfigvalue())<=0)
-			{
-				System.out.print("we will be using roocvthree engine");
-				isUseicontek = false;
-			}
-		}
+		
 		
 		
 		String hprret = "";
@@ -481,90 +465,16 @@ public class InteractionController {
 		
 		
 			
-		if(isUseicontek)
-		{
-			hprret = this.trainstatusIcontek(Engine, hprret, statusret, request, result, statusretsync);
-		}
-		else
-		{
+		
 			hprret = this.trainstatusRoocengine(Engine, hprret, statusret, request, result, statusretsync);
-		}
-			
-			
-		
-		return hprret;
-	}
-	
-	
-
-	@RequestMapping(method=RequestMethod.GET,value="/trainstatussyncrtsaml")
-	public String getTrainstatusrtsaml(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
-		
-		
-		EngineCredential result = new EngineCredential();
-		result = ecservice.getView(request.getHeader("tenantID"),this.ECID);
-		
-		String Engine = "";
-		if(result.getIsusertsaml()==1)
-		{
-			boolean isEmptymlapi = result.getMlapi() == null || result.getMlapi().trim().length() == 0;
-			if(isEmptymlapi)
-			{
-				Engine = result.getApi();
-			}
-			else
-			{
-				Engine = result.getMlapi();
-			}
-		}
-		else
-		{
-			Engine = result.getApi();
-		}
-		
-		String hprret = "";
-		
-		
-		String statusret = "";
-		
-		
-		 //do {
-			try {
-				hprret = hpr.ConnectGetTokenchannel(Engine+"/api/async/status/syncEngine","");
-				String jsonString = hprret;
-				JSONObject jsonObject = new JSONObject(jsonString);
-				
-				if(!jsonObject.has("STATUS"))
-				{
-					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-				}
-				if(jsonObject.getString("STATUS") ==null)
-				{
-					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-				}
-				
-				statusret = jsonObject.getString("STATUS");
-				System.out.println(statusret);
-				//return hprret;
-			}catch(Exception ex)
-			{
-				System.out.println(ex);
-			}
-		//}while(statusret.equals("RUNNING"));
 		
 			
-			/*if(statusret.equals("IDLE"))
-			{
-				
-				service.getUpdateistrain(request.getHeader("tenantID"));
-			}
-			*/
 			
 		
 		return hprret;
 	}
 	
-	
+		
 
 	@SuppressWarnings("null")
 	@RequestMapping(method=RequestMethod.GET,value="/traindbrc")
@@ -1143,8 +1053,8 @@ public class InteractionController {
 	
 	
 	
-	@RequestMapping(method=RequestMethod.POST,value="/create")
-	public String getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
+	@RequestMapping(method=RequestMethod.POST,value="/createv2")
+	public String getCreatev2(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -1156,7 +1066,7 @@ public class InteractionController {
 			token = headers.get("access_token").get(0);
 		}
 		trb.SetTrailRecord(token,obj);
-		String retData = service.getCreate(headers.get("tenantID").get(0),obj);
+		String retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
 		return retData;
 	}
 	
@@ -1207,7 +1117,7 @@ public class InteractionController {
 			token = headers.get("access_token").get(0);
 		}
 		trb.SetTrailRecord(token,obj);
-		String retData = service.getUpdate(headers.get("tenantID").get(0),obj);
+		String retData = service.getUpdatev2(headers.get("tenantID").get(0),obj);
 		return  retData;
 	}
 	
@@ -1650,223 +1560,6 @@ public class InteractionController {
 		//return retData;
 	}
 	
-	private void syncrtsaInteractiondata(String headertenant)
-	{	
-		EngineCredential result = new EngineCredential();
-		result = ecservice.getView(headertenant,this.ECID);
-		if(result == null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine not valid");
-		}
-		
-		//List<Intent> intresult = intentservice.getIntentnotgeneratedvoice(headertenant);
-		List<Interaction> intresult = service.getIndex(headertenant);
-		//return result; 
-		if(intresult == null)
-		{
-			//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data to sync");
-		}
-		
-		String syncResult="COMPLETE";
-		String voiceapi = result.getApi();
-		
-		JSONObject postdatacheck = new JSONObject();
-		JSONObject postdata = new JSONObject();
-		
-		String hprrettoken = "";
-		try {
-			hprrettoken = hpr.ConnectGetToken(voiceapi+"/oauth/token",result.getUsername(),result.getPassword());
-		}catch(Exception ex)
-		{
-			System.out.println(ex);
-		}
-		
-		String jsonStringtoken = hprrettoken;
-        JSONObject jsonObjecttoken;
-		
-        jsonObjecttoken = new JSONObject(jsonStringtoken);
-		if(jsonObjecttoken.getString("access_token") ==null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine access token not found.");
-		}
-		String engAccesstoken = jsonObjecttoken.getString("access_token");
-		
-		
-		//int MaxIntent =0;
-		intresult.forEach(item->{
-			String lastinsertuserid = "0";
-			
-			
-			//String engAccesstoken ="";
-			System.out.print("Question/Intent faqidstr :" +item.getFaqidstr());
-			String hprret = "";
-			String postret = "";
-			
-			postdatacheck.put("responseId", item.getFaqidstr());
-			
-			//postret = hpr.setPostData(result.getApi()+"/api/category/add",postdata);
-			try {
-				hprret = hpr.setPostData(voiceapi+"/api/response/search"+"",postdatacheck);
-			}catch(Exception ex)
-			{
-				System.out.println(ex);
-			}
-			System.out.print("get return :" +hprret);
-			String jsonString = hprret;
-	        JSONObject jsonObject;
-	        Interaction interactionupdate =  new Interaction();
-	        
-	        Interaction introne = new Interaction();
-	        introne = service.getViewbyfaqidstr(headertenant, item.getFaqidstr());
-	    	if(introne ==  null)
-	    	{
-	    		//throw new CoreException(HttpStatus.FAILED_DEPENDENCY, "Invalid Directory for intent : "+item.getQuestion()+" with id : "+item.getIntentid());
-	    	}
-	    	
-	    	String question = introne.getQuestion();
-	    	int expectedfaqid = introne.getExpectedintentid();
-	    	String faqidstr = introne.getFaqidstr();
-	    	String questionid = introne.getQid();
-	    	int faqid = introne.getIntentid();
-	    	
-	    	postdata.put("access_token", engAccesstoken);
-			postdata.put("question", question);
-			//postdata.put("categoryid", retparID);
-			postdata.put("faqid", faqid);
-			postdata.put("expectedFaqid", expectedfaqid);
-			//postdata.put("answer", item.getAnswer());
-			postdata.put("responseId", faqidstr);
-			postdata.put("questionId", questionid);
-	        
-			
-			//ini mnegecek apa apakah data nya sudah ada atau belum
-	        if(validatejson.isJSONValidarray(jsonString))
-	        {
-	        	JSONArray jsonarray = new JSONArray(jsonString);
-	        	for (int i = 0; i < jsonarray.length(); i++) {
-				    //JSONObject jsonobject = new JSONObject(jsonString);//jsonarray.getJSONObject(i);
-	        		JSONObject jsonobject = jsonarray.getJSONObject(i);
-	        		
-				    if(!jsonobject.has("id"))
-					{
-				    	//berarti data belum ada lalu kita insert
-				    	
-				    	JSONArray ja = new JSONArray();
-						ja.put(postdata);
-						
-						try {
-							postret = hpr.setPostDataarray(voiceapi+"/response/add",ja);
-							System.out.println("post return is : "+ postret);
-							
-							//int cntErr =0;
-							//String errMessage="";
-							if(validatejson.isJSONValidarray(postret))
-							{
-								for (int x = 0; x < jsonarray.length(); x++) {
-								    JSONObject jsonobjectres = jsonarray.getJSONObject(x);
-								    int respId = jsonobjectres.getInt("id");
-								    double cl = jsonobjectres.getDouble("confidence");
-								    String qid = jsonobjectres.getString("questionId");
-								    if(respId>0)
-								    {
-								    	interactionupdate.setFaqidstr(faqidstr);
-								    	interactionupdate.setIretrespondid(respId);
-								    	
-								    	interactionupdate.setConfidencelevel(cl);
-								    	System.out.println("qid from icontek is : " + qid);
-								    	interactionupdate.setQid(qid);
-								    	interactionupdate.setIsmanual(introne.getIsmanual());
-								    	//lastinsertuserid =intMapper.Save(interactionupdate);
-								    	//service.getUpdateengineidonly(headertenant, interactionupdate);
-								    }
-								}
-								
-								
-							}
-						} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException
-								| IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				    else if(jsonobject.has("id"))
-				    {
-				    	//berarti sudah ada,jadi tinggal update saja
-				    	if(introne.getIretrespondid()>0)
-			        	{
-				    		if(introne.getIretrespondid() == jsonobject.getInt("id"))
-				    		{
-				    			postdata.put("id", introne.getIretrespondid());
-				    		}
-			        		
-			        	}
-				    	JSONArray ja = new JSONArray();
-						ja.put(postdata);
-						
-						try {
-							postret = hpr.setPostDataarray(voiceapi+"/response/update/expectedFaqid",ja);
-						} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException
-								| IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						
-						System.out.println("post return is : "+ postret);
-						
-						jsonObject = new JSONObject(postret);
-						
-						//error message from icontek : ERROR
-						String errMessage ="Something went wrong";
-						if(jsonObject.has("ERROR"))
-						{
-							errMessage = jsonObject.getString("ERROR");
-						}
-						
-						if(jsonObject.has("STATUS"))
-						{
-							if(jsonObject.getString("STATUS").equals("OK"))
-							{
-								interactionupdate.setFaqidstr(faqidstr);
-						    	interactionupdate.setIretrespondid(jsonobject.getInt("id"));
-						    	//service.getUpdateengineidonly(headertenant, interactionupdate);
-							}
-							else
-							{
-								throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-							}
-						}
-						else
-						{
-							throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-						}
-				    }
-				}
-	        }
-	        
-	        
-	        //save update only for engine id
-	        service.getUpdateengineidonly(headertenant, interactionupdate);
-	        
-	        
-		});
-	}
-	
-	@RequestMapping(method=RequestMethod.GET,value="/syncrtsaresponse")
-	public String getSyncrtsaresponse(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
-		
-		this.syncrtsaInteractiondata(request.getHeader("tenantID"));
-		
-		return "COMPLETE";
-	}
-	
-	@RequestMapping(method=RequestMethod.GET,value="/syncroocengineresponse")
-	public String getSyncroocengineresponse(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
-		
-		this.syncrtsaInteractiondataroocengine(request.getHeader("tenantID"));
-		
-		return "COMPLETE";
-	}
 	
 	@RequestMapping(method=RequestMethod.POST,value="/updatedelete")
 	public String getUpdatedelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
@@ -2148,92 +1841,6 @@ public class InteractionController {
 		//return hprretpost;
 	}
 	
-	private String trainstatusIcontek(String Engine,String hprret,String statusret,HttpServletRequest request
-			,EngineCredential result,String statusretsync)
-	{
-		try {
-			hprret = hpr.ConnectGetTokenchannel(Engine+"/train/status","");
-			String jsonString = hprret;
-			JSONObject jsonObject = new JSONObject(jsonString);
-			
-			if(!jsonObject.has("STATUS"))
-			{
-				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-			}
-			if(jsonObject.getString("STATUS") ==null)
-			{
-				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-			}
-			
-			statusret = jsonObject.getString("STATUS");
-			System.out.println(statusret);
-			//return hprret;
-		}catch(Exception ex)
-		{
-			System.out.println(ex);
-		}
-		
-		if(statusret.equals("IDLE"))
-		{
-			
-			//service.getUpdateistrain(request.getHeader("tenantID"));
-			
-			//jika sudah ada envi ml/rtsa baru bisa dicoba
-			if(result.getIsusertsaml()==1)
-			{
-				String syncgetrequest ="";
-				//jika mlrtsa setelah selesai training lakukan copy/sync
-				try {
-					syncgetrequest = hpr.ConnectGetTokenchannel(Engine+"/api/engine/sync","");
-					System.out.print("ML/RTSA SYNC Response is : " + syncgetrequest);
-				} catch (KeyManagementException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ClientProtocolException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (KeyStoreException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				do {
-					
-					try {
-						String getenginesyncStatus = hpr.ConnectGetTokenchannel(Engine+"/api/async/status/syncEngine","");
-						String jsonStringsync = getenginesyncStatus;
-						JSONObject jsonObjectsync = new JSONObject(jsonStringsync);
-						
-						if(!jsonObjectsync.has("STATUS"))
-						{
-							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-						}
-						if(jsonObjectsync.getString("STATUS") ==null)
-						{
-							throw new CoreException(HttpStatus.EXPECTATION_FAILED, "something went wrong.");
-						}
-						
-						statusretsync = jsonObjectsync.getString("MESSAGE");
-						System.out.println(statusretsync);
-						//return hprret;
-					}catch(Exception ex)
-					{
-						System.out.println(ex);
-					}
-				
-				}while(statusretsync.equals("RUNNING"));
-				
-				
-			}
-		}
-		return hprret;
-	}
 	
 	private String trainstatusRoocengine(String Engine,String hprret,String statusret,HttpServletRequest request
 			,EngineCredential result,String statusretsync)
@@ -2268,194 +1875,25 @@ public class InteractionController {
 		return hprret;
 	}
 	
-
-	private void syncrtsaInteractiondataroocengine(String headertenant)
-	{	
-		EngineCredential result = new EngineCredential();
-		result = ecservice.getView(headertenant,this.ECID);
-		if(result == null)
+	/* v3 starts here */
+	@RequestMapping(method=RequestMethod.POST,value="/create")
+	public String getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
 		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine not valid");
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
 		}
 		
-		//List<Intent> intresult = intentservice.getIntentnotgeneratedvoice(headertenant);
-		//List<Interaction> intresult = service.getIndex(headertenant);
-		//return result; 
-		List<Interaction> intresult = service.extractInteractionexpectedintentid(headertenant);
-		if(intresult == null)
-		{
-			//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no data to sync");
-		}
+		//trb.SetTrailRecord(token,obj);
 		
-		String syncResult="COMPLETE";
-		String voiceapi = result.getApi();
-		String rootCategory = result.getRootcategory();
-		
-		JSONObject postdatacheck = new JSONObject();
-		JSONObject postdata = new JSONObject();
-		
-		String hprrettoken = "";
-		/*try {
-			hprrettoken = hpr.ConnectGetToken(voiceapi+"/oauth/token",result.getUsername(),result.getPassword());
-		}catch(Exception ex)
-		{
-			System.out.println(ex);
-		}
-		
-		String jsonStringtoken = hprrettoken;
-        JSONObject jsonObjecttoken;
-		
-        jsonObjecttoken = new JSONObject(jsonStringtoken);
-		if(jsonObjecttoken.getString("access_token") ==null)
-		{
-			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine access token not found.");
-		}
-		String engAccesstoken = jsonObjecttoken.getString("access_token");*/
-		String engAccesstoken = "";
-		
-		//int MaxIntent =0;
-		intresult.forEach(item->{
-			String lastinsertuserid = "0";
-			
-			
-			//String engAccesstoken ="";
-			System.out.print("Question/Intent faqidstr :" +item.getFaqidstr());
-			String hprret = "";
-			String postret = "";
-			
-			postdatacheck.put("responseId", item.getFaqidstr());
-			
-			//postret = hpr.setPostData(result.getApi()+"/api/category/add",postdata);
-			/*try {
-				hprret = hpr.setPostData(voiceapi+"/api/response/search"+"",postdatacheck);
-			}catch(Exception ex)
-			{
-				System.out.println(ex);
-			}
-			System.out.print("get return :" +hprret);
-			String jsonString = hprret;*/
-	        JSONObject jsonObject;
-	        Interaction interactionupdate =  new Interaction();
-	        Intent intentexp = new Intent();
-	        Directory dir = new Directory();
-	        Interaction introne = new Interaction();
-	        introne = item;
-	        /*introne = service.getViewbyfaqidstr(headertenant, item.getFaqidstr());
-	    	if(introne ==  null)
-	    	{
-	    		//throw new CoreException(HttpStatus.FAILED_DEPENDENCY, "Invalid Directory for intent : "+item.getQuestion()+" with id : "+item.getIntentid());
-	    	}*/
-	    	
-	    	/*boolean isEmptyexpintentname = introne.getExpectedintentname() == null || introne.getExpectedintentname().trim().length() == 0;
-			
-			if(isEmptyexpintentname)
-			{
-				//expected intentname null or not pass,use id
-				intentexp = intentservice.getView(headertenant,introne.getExpectedintentid());
-			}
-			else
-			{
-				intentexp = intentservice.getViewquestion(headertenant,introne.getExpectedintentname());
-			}
-	    	
-	    	dir = dirservice.getView(headertenant,intentexp.getDirectoryid());
-			
-			if(dir == null)
-			{
-				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid directory.");
-			}
-			
-			System.out.println("expected intent directory parentid is : " + dir.getParentid());
-	    	*/
-	    	postdata.put("Authorization", engAccesstoken);
-	        //postdata.put("questionId", result.getRootcategory());
-	        //postdata.put("map", getMapview);
-	        postdata.put("responseId", introne.getFaqidstr());
-			postdata.put("question", introne.getQuestion());
-			postdata.put("faqid", introne.getIntentid());
-			postdata.put("expectedFaqId", introne.getExpectedintentid());
-			
-			if(introne.getExpectedintentid()<=0)
-			{
-				postdata.put("root", rootCategory);
-			}
-	    	
-	    	String question = introne.getQuestion();
-	    	int expectedfaqid = introne.getExpectedintentid();
-	    	String faqidstr = introne.getFaqidstr();
-	    	String questionid = introne.getQid();
-	    	int faqid = introne.getIntentid();
-	    	
-	    	
-	    	/*postdata.put("access_token", engAccesstoken);
-			postdata.put("question", question);
-			//postdata.put("categoryid", retparID);
-			postdata.put("faqid", faqid);
-			postdata.put("expectedFaqid", expectedfaqid);
-			//postdata.put("answer", item.getAnswer());
-			postdata.put("responseId", faqidstr);
-			postdata.put("questionId", questionid);*/
-	        
-	    	interactionupdate = introne;
-			
-	    	JSONArray ja = new JSONArray();
-			ja.put(postdata);
-			
-			if(!introne.getQuestion().trim().equals(""))
-			{
-			
-				try {
-					postret = hpr.setPostData(voiceapi+"/question",postdata);
-				} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				
-				System.out.println("post return is : "+ postret);
-				 Object jsonobjectret = postret;//json.get("URL"); 
-				
-				 boolean isAllowsave =false;
-				 JSONArray jsonarray = new JSONArray(postret);
-					for (int i = 0; i < jsonarray.length(); i++) {
-					    JSONObject jsonobject = jsonarray.getJSONObject(i);
-					    if(jsonobject.has("id"))
-					    {
-					    	int respId = jsonobject.getInt("id");
-						    //double cl = jsonobject.getDouble("confidence");
-						    //String qid = jsonobject.getString("questionId");
-						    if(respId>0)
-						    {
-						    	//interactionupdate.setIretrespondid(respId);
-						    	introne.setIretrespondid(respId);
-						    	//interaction.setConfidencelevel(cl);
-						    	//System.out.println("qid from icontek is : " + qid);
-						    	//interaction.setQid(qid);
-						    	//interactionupdate.setIsmanual(1);
-						    	
-						    }
-						    isAllowsave =true;
-					    }
-					    else
-					    {
-					    	introne.setIretrespondid(0);
-					    }
-					    
-					}
-		        
-					//service.Updatesyncroocengineid(headertenant,interactionupdate);
-					service.Updatesyncroocengineid(headertenant,introne);
-			}
-			else
-			{
-				System.out.print("Can't update for Question with id : "+introne.getFaqidstr()+" ,the cause  is null or empty ");
-			}
-	        //save update only for engine id
-	       // service.getUpdateengineidonly(headertenant, interactionupdate);
-	        
-	        
-		});
+		String retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
+		return retData;
 	}
-	
+	/* v3 till here */
 	
 }

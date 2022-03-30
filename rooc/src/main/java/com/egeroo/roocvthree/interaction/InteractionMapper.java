@@ -513,5 +513,30 @@ public interface InteractionMapper {
 			+ " WHERE interactionid=#{interactionid} "
 			+ " RETURNING interactionid")
     public String Updatedelete(Interaction interaction);
+	
+	/* v3 */
+	
+	@Select(" SELECT a.interactionid as id,a.intentid as intentId" +
+			" ,a.question as question,a.createdtime as as createdOn" + 
+			" ,u.name as createdBy\n " + 
+			" FROM tr_eng_interaction a\n " + 
+			" left join ms_app_userprofile u\n " + 
+			" on a.createdby=u.userid\n " + 
+			" WHERE a.istrain=1 AND a.expectedintentid =#{expectedintentid} " + 
+			" ; ")
+    public List<InteractionResponse> findlistquestionbyexpectedintentid(Integer expectedintentid);
+	
+	@Select(" SELECT a.interactionid as id,a.intentid as intentId" +
+			" ,a.question as question,a.createdtime as as createdOn" + 
+			" ,u.name as createdBy\n " + 
+			" FROM tr_eng_interaction a\n " + 
+			" left join ms_app_userprofile u\n " + 
+			" on a.createdby=u.userid\n " + 
+			" WHERE a.istrain=1  " + 
+			" ; ")
+    public List<InteractionResponse> findlistquestions();
+	
+	/* v3 */
+	
 
 }

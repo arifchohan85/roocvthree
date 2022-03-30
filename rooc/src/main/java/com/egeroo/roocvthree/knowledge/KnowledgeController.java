@@ -9,7 +9,9 @@ import javax.validation.Valid;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.egeroo.roocvthree.directory.DirectoryTree;
 import com.egeroo.roocvthree.directory.IntentTree;
+
+import com.egeroo.roocvthree.interaction.InteractionRequest;
+import com.egeroo.roocvthree.interaction.InteractionResponse;
+import com.egeroo.roocvthree.interaction.InteractionService;
 import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
 
 @RestController
@@ -28,7 +34,8 @@ public class KnowledgeController {
 	@Autowired
     private KnowledgeService service;
 	
-	
+	@Autowired
+	private InteractionService intservice;
 	
 	TrailingRecordBase trb = new TrailingRecordBase();
 	
@@ -81,8 +88,19 @@ public class KnowledgeController {
 	}
 	
 	@RequestMapping(method=RequestMethod.GET,value="/knowledgetree")
-	public String getKnowledgetree(@RequestHeader HttpHeaders headers) {
-		JSONArray resulttree = service.getAlltree(headers.get("tenantID").get(0));
+	public String getKnowledgetree(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+		
+		JSONArray resulttree = service.getAlltree(headers.get("tenantID").get(0),token);
 		System.out.println("====FINISH resulttree====");
 		System.out.println(resulttree.toString());
 		return resulttree.toString();
@@ -95,10 +113,77 @@ public class KnowledgeController {
 		return ResponseEntity.ok(Arrays.asList(resultdirtree, resultintenttree));
 	}
 	
-//	@GetMapping("/multiple")
-//	  public ResponseEntity<List<Pojo>> multiple() {
-//	    return ResponseEntity.ok(Arrays.asList(new Pojo("one"), new Pojo("two")));
-//	  }
+	@RequestMapping(method=RequestMethod.POST,value="/question")
+	public InteractionResponse getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody InteractionRequest obj) {
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+		//trb.SetTrailRecord(token,obj);
+		InteractionResponse retData = intservice.getCreate(headers.get("tenantID").get(0),obj,token);
+		return retData;
+	}
+	
+	@RequestMapping(method=RequestMethod.PUT,value="/question/update")
+	public InteractionResponse getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody InteractionRequest obj) {
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+		//trb.SetTrailRecord(token,obj);
+		InteractionResponse retData = intservice.getUpdate(headers.get("tenantID").get(0),obj,token);
+		return retData;
+	}
+	
+	//@RequestMapping(method=RequestMethod.DELETE,value="/question/delete")
+	@RequestMapping(method=RequestMethod.DELETE,value="/question")
+	public InteractionResponse getDelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,int questionId) {
+		String token ="";
+    	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
+		if(isEmpty)
+		{
+			token = headers.get("Authorization").get(0);
+		}
+		else
+		{
+			token = headers.get("access_token").get(0);
+		}
+		//trb.SetTrailRecord(token,obj);
+		InteractionResponse retData = intservice.getDelete(headers.get("tenantID").get(0),questionId,token);
+		return retData;
+	}
+	
+	
+	//
+	//@GetMapping(path = "/questions", consumes = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(method=RequestMethod.GET,value="/questions")
+	public List<InteractionResponse> getQuestions(@RequestHeader HttpHeaders headers,HttpServletRequest request) {
+		List<InteractionResponse> retData = intservice.getListquestions(headers.get("tenantID").get(0));
+		return retData;
+	}
+	
+	//
+	//@GetMapping(path = "/questions", consumes = MediaType.APPLICATION_JSON_VALUE)
+	//@RequestMapping(method=RequestMethod.GET,value="/questionsbyintent")
+	@RequestMapping(method=RequestMethod.GET ,value = "/questions", params = "intentId")
+	public List<InteractionResponse> getQuestions(@RequestHeader HttpHeaders headers,HttpServletRequest request,int intentId) {
+		List<InteractionResponse> retData = intservice.getListquestionsbyexpectedintentid(headers.get("tenantID").get(0),intentId);
+		return retData;
+	}
+	
+
 	
 
 }

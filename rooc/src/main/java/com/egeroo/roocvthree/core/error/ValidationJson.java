@@ -17,15 +17,17 @@ public class ValidationJson {
 	
 	public boolean isJSONValidarray(String test) {
 	    try {
-	        new JSONObject(test);
+	        //new JSONObject(test);
+	    	new JSONArray(test);
 	    } catch (JSONException ex) {
 	        // edited, to include @Arthur's comment
 	        // e.g. in case JSONArray is valid as well...
-	        try {
-	            new JSONArray(test);
-	        } catch (JSONException ex1) {
-	            return false;
-	        }
+//	        try {
+//	            new JSONArray(test);
+//	        } catch (JSONException ex1) {
+//	            return false;
+//	        }
+	        return false;
 	    }
 	    return true;
 	}

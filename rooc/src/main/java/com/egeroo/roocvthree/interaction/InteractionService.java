@@ -4,12 +4,24 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import com.egeroo.roocvthree.core.error.CoreException;
+import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
+import com.egeroo.roocvthree.userprofile.UserProfile;
+import com.egeroo.roocvthree.userprofile.UserProfileService;
+import com.egeroo.roocvthree.userprofile.UserProfileView;
 
 
 
 @Service
 public class InteractionService {
+	
+	TrailingRecordBase trb = new TrailingRecordBase();
+	
+	@Autowired private UserProfileService profService;
 	
 	public List<Interaction> getIndex(String tenant) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
@@ -21,6 +33,7 @@ public class InteractionService {
 		return appMapper.findAlljoindate(datefrom,dateto);	 
 	}
 
+	@SuppressWarnings("rawtypes")
 	public List<LinkedHashMap> getIndexjoindatev3(String tenant,Date datefrom,Date dateto) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.findAlljoindatev3(datefrom,dateto);	 
@@ -41,6 +54,7 @@ public class InteractionService {
 		return appMapper.findAlljointrain();	 
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public List<LinkedHashMap> getIndexjointrainv3(String tenant) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.findAlljointrainv3();	 
@@ -111,7 +125,7 @@ public class InteractionService {
 		return appMapper.findMaxinteractionid();
 	}
 	
-	public String getCreate(String tenant,Interaction interaction) {
+	public String getCreatev2(String tenant,Interaction interaction) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.Save(interaction); 
 	}
@@ -126,7 +140,7 @@ public class InteractionService {
 		return appMapper.Saveinternal(interaction); 
 	}
 	
-	public String getUpdate(String tenant,Interaction interaction) {
+	public String getUpdatev2(String tenant,Interaction interaction) {
 		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
 		return appMapper.Update(interaction);
 	}
@@ -186,4 +200,187 @@ public class InteractionService {
 		return appMapper.findCountjointrain();	 
 	}
 
+	
+	/* v3 */
+	
+	public InteractionResponse getCreate(String tenant,InteractionRequest intr,String token) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		
+		Interaction interaction = new Interaction();
+		interaction.setIntentid(intr.getIntentId());
+		interaction.setExpectedintentid(intr.getIntentId());
+		interaction.setQuestion(intr.getQuestion());
+		interaction.setFaqidstr("");
+		interaction.setMinconfidence(10);
+		interaction.setMaxconfidence(100);
+		interaction.setActive(1);
+		interaction.setIsupdated(1);
+		interaction.setIstrain(0);
+		interaction.setConfidencelevel(0);
+		
+		trb.SetTrailRecord(token,interaction);
+		int userid = trb.Parseuserid(token);
+		
+		String intrid =  appMapper.Save(interaction); 
+		
+		String upname = "";
+		UserProfile upresult = profService.getViewbyuserid(tenant,userid);
+		
+		if(upresult==null)
+		{
+			
+		}
+		else
+		{
+			upname = upresult.getName();
+		}
+		
+		if(Integer.parseInt(intrid)>0)
+		{
+			InteractionResponse intrres = new InteractionResponse();
+			intrres.setId(Integer.parseInt(intrid));
+			intrres.setQuestion(intr.getQuestion());
+			intrres.setIntentId(intr.getIntentId());
+			intrres.setCreatedOn(interaction.getCreatedtime());
+			intrres.setCreatedBy(upname);
+			
+			return intrres;
+		}
+		else
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Data not saved");
+		}
+		
+	}
+	
+	public InteractionResponse getUpdate(String tenant,InteractionRequest intr,String token) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		
+		int expintentid =0;
+		if(intr.getIntentId()>0)
+		{
+			expintentid = intr.getIntentId();
+		}
+		
+		Interaction interaction = new Interaction();
+		interaction.setInteractionid(intr.getId());
+		interaction.setIntentid(intr.getIntentId());
+		
+		interaction.setExpectedintentid(expintentid);
+		interaction.setQuestion(intr.getQuestion());
+		//interaction.setFaqidstr("");
+		interaction.setMinconfidence(10);
+		interaction.setMaxconfidence(100);
+		interaction.setActive(1);
+		interaction.setIsupdated(1);
+		interaction.setIstrain(0);
+		interaction.setConfidencelevel(0);
+		
+		trb.SetTrailRecord(token,interaction);
+		int userid = trb.Parseuserid(token);
+		
+		String intrid = appMapper.Update(interaction);
+		
+		String upname = "";
+		UserProfile upresult = profService.getViewbyuserid(tenant,userid);
+		
+		if(upresult==null)
+		{
+			
+		}
+		else
+		{
+			upname = upresult.getName();
+		}
+		
+		if(Integer.parseInt(intrid)>0)
+		{
+			InteractionResponse intrres = new InteractionResponse();
+			intrres.setId(Integer.parseInt(intrid));
+			intrres.setQuestion(intr.getQuestion());
+			intrres.setIntentId(intr.getIntentId());
+			intrres.setCreatedOn(interaction.getCreatedtime());
+			intrres.setCreatedBy(upname);
+			
+			return intrres;
+		}
+		else
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Data not saved");
+		}
+	}
+	
+	public InteractionResponse getDelete(String tenant,int questionId,String token) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		
+		
+		Interaction interaction = this.getView(tenant,questionId);
+		
+		if(interaction==null)
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "No Data found");
+		}
+		
+		int expintentid =0;
+		
+		
+		//interaction.setInteractionid(intr.getId());
+		//interaction.setIntentid(intr.getIntentId());
+		
+		interaction.setExpectedintentid(expintentid);
+//		interaction.setQuestion(intr.getQuestion());
+//		//interaction.setFaqidstr("");
+//		interaction.setMinconfidence(10);
+//		interaction.setMaxconfidence(100);
+		interaction.setActive(1);
+		interaction.setIsupdated(1);
+		interaction.setIstrain(0);
+//		interaction.setConfidencelevel(0);
+		
+		trb.SetTrailRecord(token,interaction);
+		//int userid = trb.Parseuserid(token);
+		
+		String intrid = appMapper.Update(interaction);
+		
+		String upname = "";
+		UserProfileView upresult = profService.getView(tenant,interaction.getCreatedby());
+		
+		if(upresult==null)
+		{
+			
+		}
+		else
+		{
+			upname = upresult.getName();
+		}
+		
+		if(Integer.parseInt(intrid)>0)
+		{
+			InteractionResponse intrres = new InteractionResponse();
+			intrres.setId(Integer.parseInt(intrid));
+			intrres.setQuestion(interaction.getQuestion());
+			intrres.setIntentId(interaction.getIntentid());
+			intrres.setCreatedOn(interaction.getCreatedtime());
+			intrres.setCreatedBy(upname);
+			
+			return intrres;
+		}
+		else
+		{
+			throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Data not saved");
+		}
+	}
+	
+	public List<InteractionResponse> getListquestions(String tenant) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		return appMapper.findlistquestions();	 
+	}
+	
+	public List<InteractionResponse> getListquestionsbyexpectedintentid(String tenant,int expectedintentid) {
+		InteractionMapper appMapper = new InteractionMapperImpl(tenant);
+		return appMapper.findlistquestionbyexpectedintentid(expectedintentid);	 
+	}
+	
+	/* v3 */
+	
 }

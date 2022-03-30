@@ -12,6 +12,7 @@ public class DirectoryTree{
 	private String parent;
 	private String previousId;
 	private String type;
+	private int folderId;
 	public String getFolderName() {
 		return folderName;
 	}
@@ -42,6 +43,12 @@ public class DirectoryTree{
 	}
 	public void setPreviousId(String previousId) {
 		this.previousId = previousId;
+	}
+	public int getFolderId() {
+		return folderId;
+	}
+	public void setFolderId(int folderId) {
+		this.folderId = folderId;
 	}
 	
 	

@@ -179,8 +179,8 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		return (Interaction) ec;
 	}
 
-	@Override
-	public String Save(Interaction interaction) {
+
+	public String Savev2(Interaction interaction) {
 		System.out.println("user save : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
 		String lastinsertuserid="0";
@@ -555,6 +555,9 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		}
 		return postret;
 	}
+	
+	
+	
 	
 	/*public static boolean isNumeric(String strNum) {
 	    try {
@@ -3106,6 +3109,275 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		
 		return ec;
 	}
+	
+	/*v3*/
+	
+	public String Save(Interaction interaction) {
+		System.out.println("user save : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		String lastinsertuserid="0";
+		String postret = "";
+		Intent intent = new Intent();
+		Intent intentexp = new Intent();
+		Directory dir = new Directory();
+		try{
+			InteractionMapper intMapper = sqlSession.getMapper(InteractionMapper.class);
+			//userrole = 
+			
+			IntentMapper ecMapper = sqlSession.getMapper(IntentMapper.class);
+			DirectoryMapper dirMapper = sqlSession.getMapper(DirectoryMapper.class);
+			
+			
+			
+			boolean isEmpty = interaction.getIntentname() == null || interaction.getIntentname().trim().length() == 0;
+			
+			if(isEmpty)
+			{
+				//intentname tidak di passing..query berdasarkan intentid..
+				intent = ecMapper.findOne(interaction.getIntentid());
+			}
+			else
+			{
+				intent = ecMapper.findIntentquestion(interaction.getIntentname());
+			}
+			
+			
+			
+			int getintentid = -1;
+			int getreturnintentid =-1;
+			String getintentquestion ="";
+			
+			int getexpintentid = -1;
+			int getexpreturnintentid =-1;
+			String getexpintentquestion ="";
+			
+			if(intent == null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid intent name or id.");
+			}
+			else
+			{
+				getintentid = intent.getIntentid();
+				getreturnintentid = intent.getIretquestionid();
+				getintentquestion = intent.getQuestion();
+			}
+			
+			
+			
+			interaction.setIntentid(getintentid);
+			
+			
+			
+			
+			boolean isEmptyexpintentname = interaction.getExpectedintentname() == null || interaction.getExpectedintentname().trim().length() == 0;
+			
+			if(isEmptyexpintentname)
+			{
+				//expected intentname null or not pass,use id
+				intentexp = ecMapper.findOne(interaction.getExpectedintentid());
+			}
+			else
+			{
+				intentexp = ecMapper.findIntentquestion(interaction.getExpectedintentname());
+			}
+			
+			
+			if(intentexp == null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid expected intent name or id.");
+				
+			}
+			else
+			{
+				interaction.setExpectedintentid(intentexp.getIntentid());
+				
+				getexpintentid = intentexp.getIntentid();
+				getexpreturnintentid = intentexp.getIretquestionid();
+				getexpintentquestion = intentexp.getQuestion();
+			}
+			
+			String getMapview ="";
+			System.out.println("expected intent id is : " + intentexp.getIntentid());
+			System.out.println("expected intent directoryid is : " + intentexp.getDirectoryid());
+			dir = dirMapper.findOne(intentexp.getDirectoryid());
+			
+			if(dir == null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid directory.");
+			}
+			
+			System.out.println("expected intent directory parentid is : " + dir.getParentid());
+			
+			
+			
+			EngineCredential result = new EngineCredential();
+			result = ecservice.getView(this.tenantIdentifier,this.ECID);
+			
+			if(result == null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Something when wrong.");
+			}
+			
+			if(dir.getParentid()>0)
+			{
+				
+				Directory dirparent = dirMapper.findOne(dir.getParentid());
+				
+				
+				
+				if(dirparent.getCategorymode().equals("STANDARD"))
+				{
+					if(dir.getCategorymode().equals("QUESTIONNAIRE_BRANCHING") || dir.getCategorymode().equals("DRILLDOWN"))
+					{
+						getMapview = result.getRootcategory();
+						interaction.setQid(result.getRootcategory());
+					}
+					else
+					{
+						getMapview = this.mapView(dir.getParentid(),dirMapper);
+						System.out.println("QID is : " + getMapview);
+						getMapview = getMapview.replaceAll("null", "");
+						getMapview = getMapview.replaceAll(" null", "");
+						System.out.println("QID after fix is : " + getMapview);
+						
+						interaction.setQid(getMapview);
+					}
+					
+				}
+				else
+				{
+					getMapview = this.mapView(dir.getParentid(),dirMapper);
+					System.out.println("QID is : " + getMapview);
+					getMapview = getMapview.replaceAll("null", "");
+					getMapview = getMapview.replaceAll(" null", "");
+					System.out.println("QID after fix is : " + getMapview);
+					
+					interaction.setQid(getMapview);
+				}
+	        	
+			}
+			else
+			{
+				getMapview = result.getRootcategory();
+				interaction.setQid(result.getRootcategory());
+			}
+			
+			
+			int MaxIntent =0;
+			if(interaction.getFaqidstr() == null || "".equals(interaction.getFaqidstr()))
+			{
+				
+		        MaxIntent =result.getInitialincrement();
+				Interaction resultintentmax = new Interaction();
+				resultintentmax = intservice.getMaxinteraction(this.tenantIdentifier);
+				
+				if(resultintentmax == null)
+				{
+					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Something when wrong.");
+				}
+				
+				if(resultintentmax.getMaxinteractionid() <=0)
+				{
+					MaxIntent = MaxIntent + 1;
+				}
+				else
+				{
+					MaxIntent = resultintentmax.getMaxinteractionid() +1;
+				}
+				
+				//interaction.setFaqidstr("RSPD" + String.valueOf(MaxIntent));
+				long nowMillis = System.currentTimeMillis();
+		        //Date now = new Date(nowMillis);
+				interaction.setFaqidstr("RSPD" + String.valueOf(nowMillis));
+			}
+			
+			
+			
+			String serverUrl =result.getApi();
+			if(result.getIsusevoice()>0)
+			{
+				boolean isEmptymessagetype = interaction.getMessagetype() == null || interaction.getMessagetype().trim().length() == 0;
+				if(isEmptymessagetype)
+				{
+					interaction.setMessagetype("text");
+				}
+				
+				if(interaction.getMessagetype().equals("audio"))
+				{
+					serverUrl =result.getVoiceapi();
+				}
+				else
+				{
+					serverUrl =result.getApi();
+				}
+			}
+			else
+			{
+				serverUrl =result.getApi();
+			}
+			
+			String engAccesstoken ="";
+			String hprret = "";
+			
+			
+			
+			
+	        
+	        JSONObject postdata = new JSONObject();
+	        
+	        
+	        	postret = this.saveRoocenginecreate(postdata, engAccesstoken, getMapview, interaction
+	        			, getreturnintentid, getexpreturnintentid, postret, serverUrl, lastinsertuserid
+	        			, intMapper);
+	        
+	        
+			
+		}catch(PersistenceException e){
+			log.debug(e + "error get user data");
+			e.printStackTrace();
+		} finally{
+			sqlSession.close();
+		}
+		return postret;
+	}
+
+	@Override
+	public List<InteractionResponse> findlistquestionbyexpectedintentid(Integer expectedintentid) {
+		System.out.println("int findlistquestionbyexpectedintentid : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<InteractionResponse> ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findlistquestionbyexpectedintentid(expectedintentid);
+			log.info("getint data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findlistquestionbyexpectedintentid data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
+
+	@Override
+	public List<InteractionResponse> findlistquestions() {
+		System.out.println("int findlistquestions : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		List<InteractionResponse> ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findlistquestions();
+			log.info("getint data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findlistquestions data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return ec;
+	}
+	
+	/*v3*/
 	
 }
 

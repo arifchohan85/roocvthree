@@ -14,6 +14,7 @@ public class IntentTree {
 	private String previousId;
 	private String type;
 	private boolean multipleCondition;
+	private int intentId;
 	
 	public String getIntentName() {
 		return intentName;
@@ -51,6 +52,12 @@ public class IntentTree {
 	}
 	public void setMultipleCondition(boolean multipleCondition) {
 		this.multipleCondition = multipleCondition;
+	}
+	public int getIntentId() {
+		return intentId;
+	}
+	public void setIntentId(int intentId) {
+		this.intentId = intentId;
 	}
 	
 	

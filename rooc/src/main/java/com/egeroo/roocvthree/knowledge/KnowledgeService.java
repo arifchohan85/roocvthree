@@ -26,6 +26,8 @@ import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
 import com.egeroo.roocvthree.intent.Intent;
 import com.egeroo.roocvthree.intent.IntentService;
 import com.egeroo.roocvthree.intent.MaxIntent;
+import com.egeroo.roocvthree.interaction.Interaction;
+import com.egeroo.roocvthree.interaction.InteractionService;
 import com.egeroo.roocvthree.nodesource.NodeSource;
 import com.egeroo.roocvthree.nodesource.NodeSourceService;
 import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
@@ -49,6 +51,9 @@ public class KnowledgeService {
 	
 	@Autowired
 	private NodeSourceService nsservice;
+	
+	@Autowired
+	private InteractionService intservice;
 	
 	HttpPostReq hpr = new HttpPostReq();
 	
@@ -330,35 +335,36 @@ public class KnowledgeService {
 					pdcomposer.put("question", saveintentnew.getQuestion());
 					pdcomposer.put("answer", saveintentnew.getAnswer());
 
-					String locpostret = hpr.setPostDatalocal(result.getLocalapi()+"/composer/intent",pdcomposer,tenant,token);
-
-
-					System.out.println("composer post return is : "+ locpostret);
-					
-					if(validatejson.isJSONValidstandard(locpostret))
-					{
-						JSONObject jsonObjectlocal = new JSONObject(locpostret);
-
-						if(jsonObjectlocal.has("status"))
-						{
-							if(jsonObjectlocal.getString("status").equals("failed."))
-							{
-								saveintentnew.setIsgenerated(0);
-							}
-							else
-							{
-								saveintentnew.setIsgenerated(1);
-							}
-						}
-						else
-						{
-							saveintentnew.setIsgenerated(0);
-						}
-					}
-					else
-					{
-						saveintentnew.setIsgenerated(0);
-					}
+//					String locpostret = hpr.setPostDatalocal(result.getLocalapi()+"/intent",pdcomposer,tenant,token);
+//
+//
+//					System.out.println("composer post return is : "+ locpostret);
+//					
+//					if(validatejson.isJSONValidstandard(locpostret))
+//					{
+//						JSONObject jsonObjectlocal = new JSONObject(locpostret);
+//
+//						if(jsonObjectlocal.has("status"))
+//						{
+//							if(jsonObjectlocal.getString("status").equals("failed."))
+//							{
+//								saveintentnew.setIsgenerated(0);
+//							}
+//							else
+//							{
+//								saveintentnew.setIsgenerated(1);
+//							}
+//						}
+//						else
+//						{
+//							saveintentnew.setIsgenerated(0);
+//						}
+//					}
+//					else
+//					{
+//						saveintentnew.setIsgenerated(0);
+//					}
+					saveintentnew.setIsgenerated(0);
 					
 					lastinsertintentid = intentservice.getCreate(tenant,saveintentnew);
 				}
@@ -662,8 +668,16 @@ public class KnowledgeService {
 		return appMapper.findAllintenttree();	 
 	}
 	
-	public JSONArray getAlltree(String tenant)
+	public JSONArray getAlltree(String tenant,String token)
 	{
+		System.out.println("====GETTING COMPOSER API ADDR====");
+		EngineCredential result = new EngineCredential();
+		result = engcredsservice.getView(tenant,this.ecId);
+		
+		if (result == null) {
+            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no eng credential found.");
+        }
+		
 		List<DirectoryTree> resultdirtree = this.getDirectorytree(tenant);
 		List<IntentTree> resultintenttree = this.getIntenttree(tenant);
 		
@@ -703,6 +717,7 @@ public class KnowledgeService {
 				treedata.put("parent", resultdirtree.get(i).getParent());
 				treedata.put("previousId", resultdirtree.get(i).getPreviousId());
 				treedata.put("type", resultdirtree.get(i).getType());
+				treedata.put("folderId", resultdirtree.get(i).getFolderId());
 				
 				System.out.println("====PUT JSONArray DIREC====");
 				ja.put(treedata);
@@ -719,6 +734,7 @@ public class KnowledgeService {
 		else
 		{
 			System.out.println(resultintenttree.size());
+			String localApi = result.getLocalapi();
 			resultintenttree.forEach(item->{
 				System.out.println("====CREATING JSONObject Intent====");
 				JSONObject treedata = new JSONObject();
@@ -730,8 +746,67 @@ public class KnowledgeService {
 				treedata.put("previousId", item.getPreviousId());
 				treedata.put("type", item.getType());
 				treedata.put("multipleCondition", item.getMultipleCondition());
+				treedata.put("intentId", item.getIntentId());
 				
-				System.out.println("====CREATING JSONArray====");
+				List<Interaction> intres = intservice.getInteractionexpectedintentid(tenant,item.getIntentId()); 
+				System.out.println("question size : "+ intres.size());
+				int questionSize  = intres.size();
+				JSONArray jaQuestion = new JSONArray();
+				if(questionSize>0)
+				{
+					intres.forEach(itemQuestion->{
+						System.out.println("====CREATING JSONObject Interaction====");
+						JSONObject treedataintr = new JSONObject();
+						treedataintr.put("id", itemQuestion.getInteractionid());
+						treedataintr.put("question", itemQuestion.getQuestion());
+						treedataintr.put("createdOn", itemQuestion.getCreatedtime());
+						treedataintr.put("createdBy", itemQuestion.getUsername());
+						
+						System.out.println("====PUT JSONArray question====");
+						jaQuestion.put(treedataintr);
+					});
+				}
+				
+				System.out.println("====PUTTING Question to Intent====");
+				treedata.put("questions", jaQuestion);
+				
+				System.out.println("====REQUESTING Composer output to Intent====");
+				String hprret ="";
+				try {
+					hprret = hpr.getUserchanneltokenwithtenantid(localApi+"/response/"+item.getIntentId(),token,tenant);
+					//hprret = hpr.ConnectGetTokenchannel(serverChannel+"/auth/usertoken/"+uname,chnlToken);
+				}catch(Exception ex)
+				{
+					System.out.println(ex);
+				}
+				
+				
+				System.out.println("composer return is : "+ hprret);
+				JSONArray jsonarraycomposer;
+				try {
+					if(validatejson.isJSONValidarray(hprret))
+					{
+						
+						System.out.println("====PUTTING JSONArray composer====");
+						jsonarraycomposer = new JSONArray(hprret);
+						//if(jsonarray)
+					}
+					else
+					{
+						System.out.println("====PUTTING EMPTY JSONArray composer====");
+						jsonarraycomposer = new JSONArray();
+					}
+				}catch(Exception ex) {
+					ex.printStackTrace();
+					System.out.println("====PUTTING EMPTY JSONArray composer====");
+					jsonarraycomposer = new JSONArray();
+				}
+				
+				System.out.println("====PUTTING JSONArray composer to output====");
+				treedata.put("output", jsonarraycomposer);
+				
+				
+				System.out.println("====CREATING JSONArray intent====");
 				ja.put(treedata);
 			});
 		}
