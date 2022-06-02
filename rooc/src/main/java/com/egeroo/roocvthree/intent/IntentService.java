@@ -24,7 +24,7 @@ public class IntentService {
 		IntentMapper appMapper = new IntentMapperImpl(tenant);
 		int active = 0;
 		if(lite) {active=1;} 
-		List<Intent> intentList = appMapper.findAllV3(active);
+		List<Intent> intentList = appMapper.findAllV3();
 		List<Map> result = new ArrayList<Map>();
 		for (Intent intent : intentList) {
 			Map inputMap = new LinkedHashMap();

@@ -72,6 +72,8 @@ public class Interaction extends Base{
 	
 	private String commitedby;
 	
+	private int questionid;
+	
 	public int getInteractionid() {
         return interactionid;
     }
@@ -379,6 +381,14 @@ public class Interaction extends Base{
 
 	public void setCommitedby(String commitedby) {
 		this.commitedby = commitedby;
+	}
+
+	public int getQuestionid() {
+		return questionid;
+	}
+
+	public void setQuestionid(int questionid) {
+		this.questionid = questionid;
 	}
 	
 	

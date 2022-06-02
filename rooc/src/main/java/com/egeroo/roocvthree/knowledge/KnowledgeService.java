@@ -31,6 +31,8 @@ import com.egeroo.roocvthree.interaction.InteractionService;
 import com.egeroo.roocvthree.nodesource.NodeSource;
 import com.egeroo.roocvthree.nodesource.NodeSourceService;
 import com.egeroo.roocvthree.trailingrecord.TrailingRecordBase;
+import com.egeroo.roocvthree.userprofile.UserProfile;
+import com.egeroo.roocvthree.userprofile.UserProfileService;
 
 
 
@@ -55,20 +57,39 @@ public class KnowledgeService {
 	@Autowired
 	private InteractionService intservice;
 	
+	@Autowired private UserProfileService profService;
+	
 	HttpPostReq hpr = new HttpPostReq();
 	
 	ValidationJson validatejson = new ValidationJson();
 	
 	public String retDataPath;
 	
-	public KnowledgeResponse getCreate(String tenant,KnowledgeRequest knowledge,String token) 
+	//public KnowledgeResponse getCreate(String tenant,KnowledgeRequest knowledge,String token) 
+	public JSONObject getCreate(String tenant,KnowledgeRequest knowledge,String token) 
 	{
 		
 		Directory directory = new Directory();
 		Directory dirparent = new Directory();
 		NodeSource ns = new NodeSource();
+		JSONObject objReturn = new JSONObject();
 		
 		trb.SetTrailRecord(token,directory);
+		int userid = trb.Parseuserid(token);
+		
+		String upname = "";
+		UserProfile upresult = profService.getViewbyuserid(tenant,userid);
+		
+		if(upresult==null)
+		{
+			System.out.println("=== No User Data Found ===");
+		}
+		else
+		{
+			System.out.println("=== Data Found ===");
+			upname = upresult.getName();
+			System.out.println("=== Data Found === : "+upname);
+		}
 		
 		EngineCredential result = new EngineCredential();
 		result = engcredsservice.getView(tenant,this.ecId);
@@ -367,7 +388,10 @@ public class KnowledgeService {
 					saveintentnew.setIsgenerated(0);
 					
 					lastinsertintentid = intentservice.getCreate(tenant,saveintentnew);
+					
+					System.out.println("Intent Insert ID :" +lastinsertintentid);
 				}
+				
 				
 				int nssaveres = nsservice.getCreate(tenant, nssave);
 				if(nssaveres<=0)
@@ -396,24 +420,42 @@ public class KnowledgeService {
 			e.printStackTrace();
 		}
 		
-		KnowledgeResponse kres = new KnowledgeResponse();
+		//KnowledgeResponse kres = new KnowledgeResponse();
 		if(isSaveintent)
 		{
-			kres.setIntentId(Integer.parseInt(lastinsertintentid));
-			kres.setKnowledgeId(Integer.parseInt(lastinsertintentid));
-			kres.setId(knowledge.getId());
+//			kres.setIntentId(Integer.parseInt(lastinsertintentid));
+//			kres.setKnowledgeId(Integer.parseInt(lastinsertintentid));
+//			kres.setId(knowledge.getId());
+			
+			//return intent
+			objReturn.put("intentName",knowledge.getFolderName());
+			objReturn.put("id",knowledge.getId());
+			objReturn.put("type",knowledge.getType());
+			objReturn.put("multipleCondition",knowledge.getMultipleCondition());
+			objReturn.put("parentId",knowledge.getParentId());
+			objReturn.put("updatedBy",upname);
+			objReturn.put("updatedTime",directory.getUpdatedtime());
 		}
 		else
 		{
-			kres.setFolderId(Integer.parseInt(lastinsertuserid));
-			kres.setKnowledgeId(Integer.parseInt(lastinsertuserid));
-			kres.setId(knowledge.getId());
+//			kres.setFolderId(Integer.parseInt(lastinsertuserid));
+//			kres.setKnowledgeId(Integer.parseInt(lastinsertuserid));
+//			kres.setId(knowledge.getId());
+			//return directory
+			objReturn.put("folderName",knowledge.getFolderName());
+			objReturn.put("id",knowledge.getId());
+			objReturn.put("type",knowledge.getType());
+			objReturn.put("parentId",knowledge.getParentId());
+			objReturn.put("updatedBy",upname);
+			objReturn.put("updatedTime",directory.getUpdatedtime());
 		}
 		
-		return kres;
+		//return kres;
+		return objReturn;
 	}
 	
-	public KnowledgeResponse getUpdate(String tenant,KnowledgeRequest knowledge,String token) {
+	//public KnowledgeResponse getUpdate(String tenant,KnowledgeRequest knowledge,String token) {
+	public JSONObject getUpdate(String tenant,KnowledgeRequest knowledge,String token) {
 		Directory directory = new Directory();
 		Directory dirparent = new Directory();
 		Directory dircurrent = new Directory();
@@ -421,10 +463,27 @@ public class KnowledgeService {
 		NodeSource nsupdatekey = new NodeSource();
 		boolean isSaveintent = false;
 		
+		JSONObject objReturn = new JSONObject();
+		
 		int directoryparentid =0;
 		int intentparentid=0;
 		
 		trb.SetTrailRecord(token,directory);
+		int userid = trb.Parseuserid(token);
+		
+		String upname = "";
+		UserProfile upresult = profService.getViewbyuserid(tenant,userid);
+		
+		if(upresult==null)
+		{
+			System.out.println("=== No User Data Found ===");
+		}
+		else
+		{
+			System.out.println("=== Data Found ===");
+			upname = upresult.getName();
+			System.out.println("=== Data Found === : "+upname);
+		}
 		
 		EngineCredential result = new EngineCredential();
 		result = engcredsservice.getView(tenant,this.ecId);
@@ -442,8 +501,7 @@ public class KnowledgeService {
 	            throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no node parent found.");
 	        }
 			
-			directoryparentid = ns.getDirectoryid();
-			intentparentid = ns.getIntentid();
+			
 			
 			dirparent = dirservice.getView(tenant,ns.getDirectoryid());		
 		}
@@ -454,6 +512,9 @@ public class KnowledgeService {
 		}
 
 		System.out.println(dirparent);
+		
+		directoryparentid = dirparent.getDirectoryid();
+		intentparentid = ns.getIntentid();
 		
 		
 			
@@ -492,20 +553,24 @@ public class KnowledgeService {
 		
 		boolean isEmptyfoldername = knowledge.getFolderName() == null || knowledge.getFolderName().trim().length() == 0;
 		
+		//directory.setDirectoryid(directoryparentid);
 		directory.setParentid(directoryparentid);
+		//directory.setParentid(dirparent.getDirectoryid());
 		
 		
 		String dirname ="";
 		if(isEmptyfoldername)
 		{
 			directory.setName(knowledge.getIntentName());
+			dirname=knowledge.getIntentName();
 		}
 		else
 		{
 			directory.setName(knowledge.getFolderName());
+			dirname=knowledge.getFolderName();
 		}
 		
-		dirname = directory.getName();
+		//dirname = directory.getName();
 		
 		JSONObject postdata = new JSONObject();
 		JSONObject jsonObject;
@@ -532,24 +597,43 @@ public class KnowledgeService {
 				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no update key found.");
 			}
 			
+			int getdirectoryid = nsupdatekey.getDirectoryid();
+			
+			System.out.println("======directoryid is : "+getdirectoryid);
+			
+			if(nsupdatekey.getDirectoryid()>0)
+			{
+				dircurrent = dirservice.getView(tenant,nsupdatekey.getDirectoryid());
+			}
+			else
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no directory node found.");
+			}
+			
+			
+			if(dircurrent == null)
+			{
+				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid data.");
+			}
+			
 			if(knowledge.getType().toUpperCase().equals("FOLDER"))
 			{
 				directory.setCategorymode("STANDARD");
 				
-				if(nsupdatekey.getDirectoryid()>0)
-				{
-					dircurrent = dirservice.getView(tenant,nsupdatekey.getDirectoryid());
-				}
-				else
-				{
-					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no directory node found.");
-				}
-				
-				
-				if(dircurrent == null)
-				{
-					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid data.");
-				}
+//				if(nsupdatekey.getDirectoryid()>0)
+//				{
+//					dircurrent = dirservice.getView(tenant,nsupdatekey.getDirectoryid());
+//				}
+//				else
+//				{
+//					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no directory node found.");
+//				}
+//				
+//				
+//				if(dircurrent == null)
+//				{
+//					throw new CoreException(HttpStatus.EXPECTATION_FAILED, "invalid data.");
+//				}
 				
 				if(directory.getReticategoryid() <=0 )
 				{
@@ -589,16 +673,22 @@ public class KnowledgeService {
 					throw new CoreException(HttpStatus.NOT_MODIFIED, "Not Saved.");
 				}
 				
+				//directory.setDirectoryid(getdirectoryid);
 				directory.setName(dirname);
 				directory.setDescription(dirname);
 				directory.setDirectoryid(dircurrent.getDirectoryid());
-				
+				directory.setUpdatedby(directory.getUpdatedby());		
+				directory.setUpdatedtime(directory.getUpdatedtime());
 				lastinsertuserid =dirservice.getUpdate(tenant,directory);
+				
+				System.out.println("======lastinsertdirid is : "+lastinsertuserid);
+				
 			}
 			else if(knowledge.getType().toUpperCase().equals("STANDARD"))
 			{
 				//intent
 				directory.setCategorymode("QUESTIONNAIRE_BRANCHING");
+				
 				
 				isSaveintent = true;
 				JSONObject postdataintent = new JSONObject();
@@ -606,9 +696,8 @@ public class KnowledgeService {
 				saveintentnew.setIntentid(nsupdatekey.getIntentid());
 				saveintentnew.setAnswer(".");
 				saveintentnew.setQuestion(dirname);
-				saveintentnew.setDirectoryid(directoryparentid);
+				saveintentnew.setDirectoryid(dircurrent.getDirectoryid());
 				saveintentnew.setIntentparentid(intentparentid);
-				
 				
 
 				saveintentnew.setUpdatedby(directory.getUpdatedby());
@@ -616,13 +705,28 @@ public class KnowledgeService {
 
 				postdataintent.put("Authorization", token);
 				postdataintent.put("id", nsupdatekey.getIntentid());
-				postdata.put("question", dirname);
+				postdataintent.put("question", dirname);
 				postdataintent.put("name", dirname);
 				postdataintent.put("answer", ".");
 				
 				postret = hpr.setPostData(result.getApi()+"/intent/update",postdataintent);
 				
+				//directory.setDirectoryid(getdirectoryid);
+				directory.setName(dirname);
+				directory.setDescription(dirname);
+				directory.setDirectoryid(dircurrent.getDirectoryid());
+				directory.setUpdatedby(directory.getUpdatedby());		
+				directory.setUpdatedtime(directory.getUpdatedtime());
+				String dirlastinsertuserid =dirservice.getUpdate(tenant,directory);
+				
+				System.out.println("directoryid : "+dirlastinsertuserid);
+				
 				lastinsertintentid = intentservice.getUpdateinternal(tenant,saveintentnew);
+				
+				System.out.println("intentid : "+lastinsertintentid);
+			
+				System.out.println("======lastinsertintentid is : "+lastinsertintentid);
+				
 			}
 			
 			
@@ -641,21 +745,37 @@ public class KnowledgeService {
 			e.printStackTrace();
 		}
 		
-		KnowledgeResponse kres = new KnowledgeResponse();
+		//KnowledgeResponse kres = new KnowledgeResponse();
 		if(isSaveintent)
 		{
-			kres.setIntentId(Integer.parseInt(lastinsertintentid));
-			kres.setKnowledgeId(Integer.parseInt(lastinsertintentid));
-			kres.setId(nsupdatekey.getNodeid());
+//			kres.setIntentId(Integer.parseInt(lastinsertintentid));
+//			kres.setKnowledgeId(Integer.parseInt(lastinsertintentid));
+//			kres.setId(nsupdatekey.getNodeid());
+			//return intent
+			objReturn.put("intentName",knowledge.getFolderName());
+			objReturn.put("id",knowledge.getId());
+			objReturn.put("type",knowledge.getType());
+			objReturn.put("multipleCondition",knowledge.getMultipleCondition());
+			objReturn.put("parentId",knowledge.getParentId());
+			objReturn.put("updatedBy",upname);
+			objReturn.put("updatedTime",directory.getUpdatedtime());
 		}
 		else
 		{
-			kres.setFolderId(Integer.parseInt(lastinsertuserid));
-			kres.setKnowledgeId(Integer.parseInt(lastinsertuserid));
-			kres.setId(nsupdatekey.getNodeid());
+//			kres.setFolderId(Integer.parseInt(lastinsertuserid));
+//			kres.setKnowledgeId(Integer.parseInt(lastinsertuserid));
+//			kres.setId(knowledge.getId());
+			//return directory
+			objReturn.put("folderName",knowledge.getFolderName());
+			objReturn.put("id",knowledge.getId());
+			objReturn.put("type",knowledge.getType());
+			objReturn.put("parentId",knowledge.getParentId());
+			objReturn.put("updatedBy",upname);
+			objReturn.put("updatedTime",directory.getUpdatedtime());
 		}
 		
-		return kres;
+		//return kres;
+		return objReturn;
 	}
 	
 	public List<DirectoryTree> getDirectorytree(String tenant) {

@@ -15,6 +15,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
@@ -78,6 +79,9 @@ public class GenericController {
 					String url = result.getChannelapi() + apiChannel.getUrlvalue() + params.getParams();
 					if(apiChannel.getMethodvalue().equals("GET")) {
 						output = getMethod(url, tenantId, chnlToken);						
+					}
+					else if(apiChannel.getMethodvalue().equals("PUT")) {
+						output = putMethod(url, tenantId,chnlToken, params.getData());						
 					}else {
 						url = result.getChannelapi() + apiChannel.getUrlvalue();
 						output = postMethod(url, tenantId,chnlToken, params.getData());
@@ -85,6 +89,7 @@ public class GenericController {
 				}				
 			}catch(Exception e) {
 				e.printStackTrace();
+				throw new CoreException(HttpStatus.BAD_REQUEST, "data request not valid");
 			}			
 		}
 		return output;
@@ -192,4 +197,74 @@ public class GenericController {
             
         return result.toString();
     }
+
+	public String putMethod(String restUrl,String tenantID,String channelToken,Map<String, Object> postdata) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+    {
+		
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(this.timeoutrequest).build();
+		 SSLContextBuilder builder = new SSLContextBuilder();
+		    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+		            builder.build());
+		    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+		            sslsf).setDefaultRequestConfig(requestConfig).build();
+		    
+        HttpPut post = new HttpPut(restUrl);
+        
+        String authHeader = "Bearer " + channelToken;
+		post.setHeader("AUTHORIZATION", authHeader);
+		post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+		post.setHeader("tenantID", tenantID);
+		post.setHeader("Accept", "application/json;charset=UTF-8");
+        post.setHeader("X-Stream" , "true");
+            
+        	ObjectMapper obj = new ObjectMapper();
+        	String postObj = obj.writeValueAsString(postdata);
+        	
+        	StringEntity params = new StringEntity(postObj,ContentType.APPLICATION_JSON);
+	        post.setEntity(params);
+            
+            CloseableHttpResponse response = null;
+            StringBuffer result = new StringBuffer();
+			try {
+				response = httpclient.execute(post);
+				
+				System.out.println("Response Code : " + 
+			            response.getStatusLine().getStatusCode());
+				
+				System.out.println("response is : " + response);
+				
+				System.out.println("response content is : " + response.getEntity().getContent().toString());
+				
+	    		BufferedReader rd = null;
+				try {
+					rd = new BufferedReader(
+					 new InputStreamReader(response.getEntity().getContent()));
+				} catch (UnsupportedOperationException | IOException e) {
+					e.printStackTrace();
+				}
+				
+	    		String line = "";
+	    		try {
+					while ((line = rd.readLine()) != null) {
+						result.append(line);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+	    		System.out.println(result.toString());
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			finally {
+		        response.close();
+		    }
+    	
+            
+        return result.toString();
+    }
+
+
 }

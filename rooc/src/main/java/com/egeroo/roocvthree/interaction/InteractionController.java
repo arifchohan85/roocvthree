@@ -1054,7 +1054,7 @@ public class InteractionController {
 	
 	
 	@RequestMapping(method=RequestMethod.POST,value="/createv2")
-	public String getCreatev2(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
+	public Integer getCreatev2(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -1066,7 +1066,7 @@ public class InteractionController {
 			token = headers.get("access_token").get(0);
 		}
 		trb.SetTrailRecord(token,obj);
-		String retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
+		Integer retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
 		return retData;
 	}
 	
@@ -1105,7 +1105,7 @@ public class InteractionController {
 	}
 	
 	@RequestMapping(method=RequestMethod.POST,value="/update")
-	public String getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
+	public Integer getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -1117,7 +1117,7 @@ public class InteractionController {
 			token = headers.get("access_token").get(0);
 		}
 		trb.SetTrailRecord(token,obj);
-		String retData = service.getUpdatev2(headers.get("tenantID").get(0),obj);
+		Integer retData = service.getUpdatev2(headers.get("tenantID").get(0),obj);
 		return  retData;
 	}
 	
@@ -1877,7 +1877,7 @@ public class InteractionController {
 	
 	/* v3 starts here */
 	@RequestMapping(method=RequestMethod.POST,value="/create")
-	public String getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
+	public Integer getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody Interaction obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -1891,7 +1891,7 @@ public class InteractionController {
 		
 		//trb.SetTrailRecord(token,obj);
 		
-		String retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
+		Integer retData = service.getCreatev2(headers.get("tenantID").get(0),obj);
 		return retData;
 	}
 	/* v3 till here */

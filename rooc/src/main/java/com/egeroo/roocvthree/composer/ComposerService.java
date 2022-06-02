@@ -5,7 +5,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 
-import org.json.JSONArray;
+//import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -313,7 +313,8 @@ public class ComposerService {
 
 	
 	
-	public JSONArray getDelete(String tenant,String id,String token) 
+	//public JSONArray getDelete(String tenant,String id,String token) 
+	public JSONObject getDelete(String tenant,String id,String token) 
 	{
 		
 		EngineCredential result = new EngineCredential();
@@ -327,7 +328,7 @@ public class ComposerService {
     	
     	String locpostret = "";
 		try {
-			locpostret = hpr.setGetlocaldata(result.getLocalapi()+"/response/"+id,tenant,token);
+			locpostret = hpr.setDeletlocaldata(result.getLocalapi()+"/response/"+id,tenant,token);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -346,18 +347,20 @@ public class ComposerService {
 		System.out.println("composer post return is : "+ locpostret);
 		
 		
-		if(validatejson.isJSONValidarray(locpostret))
+		//if(validatejson.isJSONValidarray(locpostret))
+		if(validatejson.isJSONValidstandard(locpostret))
 		{
 			boolean hasError = false;
-			JSONArray jsonarray = new JSONArray(locpostret);
-			for (int i = 0; i < jsonarray.length(); i++) {
-			    JSONObject jsonobject = jsonarray.getJSONObject(i);
+			//JSONArray jsonarray = new JSONArray(locpostret);
+			JSONObject jsonobj = new JSONObject(locpostret);
+			//for (int i = 0; i < jsonarray.length(); i++) {
+			    //JSONObject jsonobject = jsonarray.getJSONObject(i);
 			    
-			    if(!jsonobject.has("id"))
+			    if(!jsonobj.has("id"))
 			    {
 			    	hasError = true;
 			    }
-			}
+			//}
 			
 			if(hasError)
 			{
@@ -366,7 +369,7 @@ public class ComposerService {
 			else
 			{
 				//throw new CoreException(HttpStatus.EXPECTATION_FAILED, "data not saved : " + jsonObjectlocal.getString("message"));
-				return jsonarray;
+				return jsonobj;
 			}
 		}
 		else

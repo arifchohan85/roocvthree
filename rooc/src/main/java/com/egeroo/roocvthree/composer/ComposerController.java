@@ -2,11 +2,12 @@ package com.egeroo.roocvthree.composer;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.json.JSONArray;
+//import org.json.JSONArray;
 import org.json.JSONObject;
 //import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,7 +91,7 @@ public class ComposerController {
 	
 	
 	
-	@RequestMapping(method=RequestMethod.POST,value="/update")
+	@RequestMapping(method=RequestMethod.PUT,value="/update")
 	public String getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@RequestBody String obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
@@ -114,8 +115,8 @@ public class ComposerController {
 		return kres.toString();
 	}
 	
-	@RequestMapping(method=RequestMethod.POST,value="/delete")
-	public String getDelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,String id) {
+	@RequestMapping(method=RequestMethod.DELETE,value="/delete/{id}")
+	public String getDelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,@PathVariable String id) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -127,7 +128,8 @@ public class ComposerController {
 			token = headers.get("access_token").get(0);
 		}
 		
-		JSONArray kres = service.getDelete(headers.get("tenantID").get(0),id,token);
+		//JSONArray kres = service.getDelete(headers.get("tenantID").get(0),id,token);
+		JSONObject kres = service.getDelete(headers.get("tenantID").get(0),id,token);
 		
 		return kres.toString();
 	}

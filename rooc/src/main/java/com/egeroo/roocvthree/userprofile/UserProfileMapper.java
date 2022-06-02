@@ -90,11 +90,11 @@ public interface UserProfileMapper {
 	@SelectKey(statement = "currval('userprofileid')", keyProperty = "userprofileid", before = true , resultType = int.class)
 	@Select("Insert into ms_app_userprofile(userid,roleid,username,password,name,address,emailaddress,userchannelid"
 			+ ",source"
-			+ ",isactive"
+			+ ",isactive,isapproved"
 			+ ",createdby,updatedby,createdtime,updatedtime) " //,createdby,updatedby
 			+ " VALUES (#{userid},#{roleid},#{username},#{password},#{name},#{address},#{emailaddress},#{userchannelid}"
 			+ ",#{source}"
-			+ ",#{isactive}"
+			+ ",#{isactive},#{isapproved}"
 			+ ",#{createdby},#{updatedby},#{createdtime},#{updatedtime}) "
 			+ " RETURNING "
 			+ " userprofileid,userid,roleid,username,name,address,emailaddress\n" +
@@ -112,7 +112,7 @@ public interface UserProfileMapper {
 			+ " ,source=#{source}"
 
 			+ " ,isactive=#{isactive}"
-
+			+ " ,isapproved=#{isapproved}"
 			+ " ,updatedby=#{updatedby}"
 			+ " ,updatedtime=#{updatedtime}"
 			+ " WHERE userprofileid=#{userprofileid} "
@@ -143,5 +143,15 @@ public interface UserProfileMapper {
 			+ " isactive=#{isactive}"
 			+ " WHERE userid=#{userid} ")
     public void Updatefromuserinactive(UserProfile userprofile);
+	
+	@SelectKey(statement = "currval('userprofileattributeid')", keyProperty = "userprofileattributeid", before = true , resultType = int.class)
+	@Select("Insert into ms_app_userprofileattribute(userprofileid,isapproved"
+			+ ") " //,createdby,updatedby
+			+ " VALUES (#{userprofileid},#{isapproved}"
+			+ ") "
+			+ " RETURNING "
+			+ " userprofileid,isapproved "
+			+ "  ") //,#{createdBy},#{updateBy}
+    public UserProfileAttribute Saveattr(UserProfileAttribute userprofileattribute);
 
 }

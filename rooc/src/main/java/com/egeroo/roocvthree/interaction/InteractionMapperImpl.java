@@ -30,6 +30,7 @@ import com.egeroo.roocvthree.enginecredential.EngineCredential;
 import com.egeroo.roocvthree.enginecredential.EngineCredentialService;
 import com.egeroo.roocvthree.intent.Intent;
 import com.egeroo.roocvthree.intent.IntentMapper;
+import com.egeroo.roocvthree.menulist.MenulistMapper;
 import com.egeroo.roocvthree.roocconfig.RoocConfig;
 import com.egeroo.roocvthree.roocconfig.RoocConfigMapper;
 import com.egeroo.roocvthree.roocconfig.RoocConfigService;
@@ -183,7 +184,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	public String Savev2(Interaction interaction) {
 		System.out.println("user save : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		String lastinsertuserid="0";
+		Integer lastinsertuserid=0;
 		String postret = "";
 		Intent intent = new Intent();
 		Intent intentexp = new Intent();
@@ -533,18 +534,11 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	        
 	        JSONObject postdata = new JSONObject();
 	        
-	        if(isUseicontek)
-			{
-	        	postret = this.saveIcontekcreate(postdata, engAccesstoken, getMapview, interaction
-	        			, getreturnintentid, getexpreturnintentid, postret, serverUrl
-	        			, lastinsertuserid, intMapper);
-			}
-	        else
-	        {
-	        	postret = this.saveRoocenginecreate(postdata, engAccesstoken, getMapview, interaction
+	        
+	        lastinsertuserid = this.saveRoocenginecreate(postdata, engAccesstoken, getMapview, interaction
 	        			, getreturnintentid, getexpreturnintentid, postret, serverUrl, lastinsertuserid
 	        			, intMapper);
-	        }
+	        
 	        
 			
 		}catch(PersistenceException e){
@@ -569,10 +563,10 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	}*/
 
 	@Override
-	public String Update(Interaction interaction) {
+	public Integer Update(Interaction interaction) {
 		System.out.println("user update : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		String lastinsertuserid="0";
+		Integer lastinsertuserid=0;
 		Intent intent = new Intent();
 		String postret = "";
 		Directory dir = new Directory();
@@ -633,44 +627,12 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Something when wrong.");
 			}
 			
-			//check engine
-	        boolean isUseicontek = true;
-	        RoocConfigMapper rcMapper = sqlSession.getMapper(RoocConfigMapper.class);
-			RoocConfig roocconfig = new RoocConfig();
-			roocconfig = rcMapper.findByconfigkey("isUseiContek");
-			if (roocconfig == null) {
-	            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-				System.out.print("we will be using default engine (icontek),because no config found");
-	        }
-			else
-			{
-				if(Integer.parseInt(roocconfig.getConfigvalue())<=0)
-				{
-					System.out.print("we will be using roocvthree engine");
-					isUseicontek = false;
-				}
-			}
+			
 			
 			String engAccesstoken ="";
 			String hprret = "";
 			
-			/*try {
-				hprret = hpr.ConnectGetToken(result.getApi()+"/oauth/token",result.getUsername(),result.getPassword());
-			}catch(Exception ex)
-			{
-				System.out.println(ex);
-			}
 			
-			String jsonString = hprret;
-	        
-			
-			jsonObject = new JSONObject(jsonString);
-			if(jsonObject.getString("access_token") ==null)
-			{
-				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "engine access token not found.");
-			}
-			engAccesstoken = jsonObject.getString("access_token");
-	        System.out.println("token is :" + jsonObject.getString("access_token"));*/
 			
 			String getMapview ="";
         	this.retDataPath ="";
@@ -688,14 +650,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				
 				System.out.println("expected intent directory parentid is : " + dir.getParentid());
 				
-				/*if(dir.getCategorymode().equals("STANDARD") || dir.getCategorymode().equals("ENUM") || dir.getCategorymode().equals("MEMORY"))
-				{	
-					getMapview = this.mapView(intent.getDirectoryid(),dirMapper);
-				}
-				else
-				{
-					getMapview = this.mapView(dir.getParentid(),dirMapper);
-				}*/
+				
 				
 				//getMapview = this.mapView(intent.getDirectoryid(),dirMapper);
 				if(dir.getParentid()>0)
@@ -791,19 +746,12 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			JSONObject jsonObject = null;
 	        JSONObject postdata = new JSONObject();
 	        
-	        if(isUseicontek)
-	        {
-	        	postret = this.saveIcontekupdate(postdata, engAccesstoken, interaction, getreturnintentid
-	        			, getexpreturnintentid, postret, lastinsertuserid, intMapper, dirMapper
-	        			, dir, intent, interactiongetfaqidstr, result, jsonObject,getMapview,serverUrl);
-	        }
-	        else
-	        {
-	        	postret = this.saveRoocengineupdate(postdata, engAccesstoken, getMapview, interaction
+	        
+	        lastinsertuserid = this.saveRoocengineupdate(postdata, engAccesstoken, getMapview, interaction
 	        			, getreturnintentid, getexpreturnintentid, postret, serverUrl
 	        			, lastinsertuserid, intMapper, interactiongetfaqidstr, dir, dirMapper
 	        			, intent, jsonObject);
-	        }
+	       
 	        
 		}catch(PersistenceException e){
 			log.debug(e + "error get ec data");
@@ -811,7 +759,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		} finally{
 			sqlSession.close();
 		}
-		return postret;
+		return lastinsertuserid;
 	}
 
 	
@@ -1083,23 +1031,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Something when wrong.");
 			}
 			
-			//check engine
-	        boolean isUseicontek = true;
-	        RoocConfigMapper rcMapper = sqlSession.getMapper(RoocConfigMapper.class);
-			RoocConfig roocconfig = new RoocConfig();
-			roocconfig = rcMapper.findByconfigkey("isUseiContek");
-			if (roocconfig == null) {
-	            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-				System.out.print("we will be using default engine (icontek),because no config found");
-	        }
-			else
-			{
-				if(Integer.parseInt(roocconfig.getConfigvalue())<=0)
-				{
-					System.out.print("we will be using roocvthree engine");
-					isUseicontek = false;
-				}
-			}
+			
 			
 			String engAccesstoken ="";
 			String hprret = "";
@@ -1233,19 +1165,11 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				serverUrl =result.getApi();
 			}
 	        
-			if(isUseicontek)
-			{
-				postret = this.saveIcontekupdateonly(postdata, engAccesstoken
-						, interaction, postret
-						, serverUrl, lastinsertuserid, intMapper, interactiongetfaqidstr
-						, intent, jsonObject, getexpintentid);
-			}
-			else
-			{
+			
 				postret = this.saveRoocengineupdateonly(postdata, engAccesstoken, interaction, postret
 						, serverUrl, lastinsertuserid, intMapper, interactiongetfaqidstr, intent
 						, jsonObject, getexpintentid, getMapview);
-			}
+			
 			
 		}catch(PersistenceException e){
 			log.debug(e + "error get ec data");
@@ -2139,23 +2063,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				throw new CoreException(HttpStatus.EXPECTATION_FAILED, "Something when wrong.");
 			}
 			
-			//check engine
-	        boolean isUseicontek = true;
-	        RoocConfigMapper rcMapper = sqlSession.getMapper(RoocConfigMapper.class);
-			RoocConfig roocconfig = new RoocConfig();
-			roocconfig = rcMapper.findByconfigkey("isUseiContek");
-			if (roocconfig == null) {
-	            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-				System.out.print("we will be using default engine (icontek),because no config found");
-	        }
-			else
-			{
-				if(Integer.parseInt(roocconfig.getConfigvalue())<=0)
-				{
-					System.out.print("we will be using roocvthree engine");
-					isUseicontek = false;
-				}
-			}
+			
 			
 			String engAccesstoken ="";
 			String hprret = "";
@@ -2211,19 +2119,11 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 				serverUrl =result.getApi();
 			}
 			
-			if(isUseicontek)
-			{
-				updatedid = this.saveIcontekupdatedelete(postdata, engAccesstoken, interaction
-					, serverUrl, engAccesstoken
-					, intMapper,  interactiongetfaqidstr, result
-					, jsonObject, serverUrl, updatedid);
-			}
-			else
-			{
+			
 				updatedid = this.saveRoocengineupdatedelete(postdata, engAccesstoken, interaction
 						, engAccesstoken, hprret, intMapper, interactiongetfaqidstr, result
 						, jsonObject, serverUrl, updatedid, getMapview);
-			}
+			
 			log.info("update data");
 		}catch(PersistenceException e){
 			log.debug(e + "error get ec data");
@@ -2288,75 +2188,10 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		return (Interaction) ec;
 	}
 	
-	private String saveIcontekcreate(JSONObject postdata,String engAccesstoken,String getMapview
-			,Interaction interaction,int getreturnintentid,int getexpreturnintentid,String postret
-			,String serverUrl,String lastinsertuserid,InteractionMapper intMapper)
-	{
-		try {
-			//postdata.put("access_token", engAccesstoken);
-	        //postdata.put("questionId", result.getRootcategory());
-	        postdata.put("questionId", getMapview);
-	        postdata.put("responseId", interaction.getFaqidstr());
-			postdata.put("question", interaction.getQuestion());
-			postdata.put("faqid", getreturnintentid);
-			postdata.put("expectedFaqid", getexpreturnintentid);
-			//postdata.put("questionId", questionId);
-			
-			
-			JSONArray ja = new JSONArray();
-			ja.put(postdata);
-		
-		
-			postret = hpr.setPostDataarray(serverUrl+"/response/add",ja);
-			
-			System.out.println("post return is : "+ postret);
-			 Object item = postret;//json.get("URL"); 
-			
-			//if(item instanceof JSONArray)
-			//{
-				JSONArray jsonarray = new JSONArray(postret);
-				for (int i = 0; i < jsonarray.length(); i++) {
-				    JSONObject jsonobject = jsonarray.getJSONObject(i);
-				    int respId = jsonobject.getInt("id");
-				    double cl = jsonobject.getDouble("confidence");
-				    String qid = jsonobject.getString("questionId");
-				    if(respId>0)
-				    {
-				    	interaction.setIretrespondid(respId);
-				    	interaction.setConfidencelevel(cl);
-				    	System.out.println("qid from icontek is : " + qid);
-				    	interaction.setQid(qid);
-				    	interaction.setIsmanual(1);
-				    	lastinsertuserid =intMapper.Save(interaction);
-				    }
-				}
-			/*}
-			else
-			{
-				log.debug("post return is :" + postret);
-			}*/
-			
-
-			log.debug("insert id is : " + lastinsertuserid);
-			
-			log.info("insertintent data");
-			
-			Interaction interactiongetfaqidstr = new Interaction();
-			this.saveTrainActivity("NEW",interaction,Integer.parseInt(lastinsertuserid),interactiongetfaqidstr
-					,0);
-			
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return postret;
-	}
 	
-	
-	private String saveRoocenginecreate(JSONObject postdata,String engAccesstoken,String getMapview
+	private Integer saveRoocenginecreate(JSONObject postdata,String engAccesstoken,String getMapview
 			,Interaction interaction,int getreturnintentid,int getexpreturnintentid,String postret
-			,String serverUrl,String lastinsertuserid,InteractionMapper intMapper)
+			,String serverUrl,int lastinsertuserid,InteractionMapper intMapper)
 	{
 		try {
 			postdata.put("Authorization", engAccesstoken);
@@ -2364,8 +2199,33 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	        postdata.put("map", getMapview);
 	        postdata.put("responseId", interaction.getFaqidstr());
 			postdata.put("question", interaction.getQuestion());
-			postdata.put("faqid", getreturnintentid);
-			postdata.put("expectedFaqId", getexpreturnintentid);
+			
+			int retintentid =0;
+			if(getreturnintentid<=0)
+			{
+				retintentid = interaction.getIntentid();
+			}
+			else
+			{
+				retintentid = getreturnintentid;
+			}
+			//postdata.put("faqid", getreturnintentid);
+			postdata.put("faqid", retintentid);
+			
+			int retexpintentid =0;
+			if(getexpreturnintentid<=0)
+			{
+				retexpintentid = interaction.getExpectedintentid();
+			}
+			else
+			{
+				retexpintentid = getexpreturnintentid;
+			}
+			//postdata.put("expectedFaqId", getexpreturnintentid);
+			postdata.put("expectedFaqId", retexpintentid);
+
+			//postdata.put("faqid", getreturnintentid);
+			//postdata.put("expectedFaqId", getexpreturnintentid);
 			//postdata.put("questionId", questionId);
 			
 			
@@ -2406,7 +2266,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			log.info("insertintent data");
 			
 			Interaction interactiongetfaqidstr = new Interaction();
-			this.saveTrainActivity("NEW",interaction,Integer.parseInt(lastinsertuserid),interactiongetfaqidstr
+			this.saveTrainActivity("NEW",interaction,lastinsertuserid,interactiongetfaqidstr
 					,0);
 			
 			
@@ -2416,116 +2276,13 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			e.printStackTrace();
 		}
 		
-		return postret;
-	}
-	
-
-	private String saveIcontekupdate(JSONObject postdata,String engAccesstoken
-			,Interaction interaction,int getreturnintentid,int getexpreturnintentid,String postret
-			,String lastinsertuserid,InteractionMapper intMapper
-			,DirectoryMapper dirMapper,Directory dir,Intent intent,Interaction interactiongetfaqidstr
-			,EngineCredential result,JSONObject jsonObject,String getMapview,String serverUrl)
-	{
-		try {
-			//postdata.put("access_token", engAccesstoken);
-			if(getexpreturnintentid>0)
-	        {
-	        	/*String getMapview ="";
-	        	
-	        	System.out.println("expected intent id is : " + intent.getIntentid());
-				System.out.println("expected intent directoryid is : " + intent.getDirectoryid());
-				*/
-	        	
-				
-				//postdata.put("access_token", engAccesstoken);
-		        //postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	if(interactiongetfaqidstr.getIretrespondid()>0)
-	        	{
-	        		postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	}
-		        postdata.put("responseId", interactiongetfaqidstr.getFaqidstr());
-		        postdata.put("questionId", getMapview);
-				postdata.put("expectedFaqid", getexpreturnintentid);
-	        }
-	        else
-	        {
-	        	//postdata.put("access_token", engAccesstoken);
-		        //postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	if(interactiongetfaqidstr.getIretrespondid()>0)
-	        	{
-	        		postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	}
-		        postdata.put("responseId", interactiongetfaqidstr.getFaqidstr());
-				postdata.put("expectedFaqid", "");
-	        }
-			
-			
-			JSONArray ja = new JSONArray();
-			ja.put(postdata);
-			
-			
-			
-			boolean isEmptymessagetype = interactiongetfaqidstr.getMessagetype() == null || interactiongetfaqidstr.getMessagetype().trim().length() == 0;
-			if(isEmptymessagetype)
-			{
-				interaction.setMessagetype("text");
-				interactiongetfaqidstr.setMessagetype("text");
-			}
-			
-			
-			
-			postret = hpr.setPostDataarray(serverUrl+"/response/update/expectedFaqid",ja);
-			
-			
-			System.out.println("post return is : "+ postret);
-			
-			jsonObject = new JSONObject(postret);
-			
-			//error message from icontek : ERROR
-			String errMessage ="Something went wrong";
-			if(jsonObject.has("ERROR"))
-			{
-				errMessage = jsonObject.getString("ERROR");
-			}
-			
-			if(jsonObject.has("STATUS"))
-			{
-				if(jsonObject.getString("STATUS").equals("OK"))
-				{
-					interaction.setIsmanual(1);
-					lastinsertuserid =intMapper.Update(interaction);
-				}
-				else
-				{
-					throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-				}
-			}
-			else
-			{
-				throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-			}
-			
-			
-			
-			
-			
-			
-			
-			log.info("update data");
-			
-			
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return postret;
+		return lastinsertuserid;
 	}
 	
 	
-	private String saveRoocengineupdate(JSONObject postdata,String engAccesstoken,String getMapview
+	private Integer saveRoocengineupdate(JSONObject postdata,String engAccesstoken,String getMapview
 			,Interaction interaction,int getreturnintentid,int getexpreturnintentid,String postret
-			,String serverUrl,String lastinsertuserid,InteractionMapper intMapper
+			,String serverUrl,Integer lastinsertuserid,InteractionMapper intMapper
 			,Interaction interactiongetfaqidstr,Directory dir,DirectoryMapper dirMapper,Intent intent
 			,JSONObject jsonObject)
 	{
@@ -2621,130 +2378,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			e.printStackTrace();
 		}
 		
-		return postret;
-	}
-	
-	private String saveIcontekupdateonly(JSONObject postdata,String engAccesstoken
-			,Interaction interaction,String postret
-			,String serverUrl,String lastinsertuserid,InteractionMapper intMapper
-			,Interaction interactiongetfaqidstr,Intent intent
-			,JSONObject jsonObject,int getexpintentid)
-	{
-		try {
-			
-			//postdata.put("access_token", engAccesstoken);
-	        if(getexpintentid>0)
-	        {
-	        	//postdata.put("access_token", engAccesstoken);
-	        	if(interactiongetfaqidstr.getIretrespondid()>0)
-	        	{
-	        		postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	}
-		        
-		        postdata.put("responseId", interaction.getFaqidstr());
-				postdata.put("expectedFaqid", interaction.getExpectedintentid());
-	        }
-	        else
-	        {
-	        	//postdata.put("access_token", engAccesstoken);
-	        	if(interactiongetfaqidstr.getIretrespondid()>0)
-	        	{
-	        		postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-	        	}
-		        //postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-		        postdata.put("responseId", interaction.getFaqidstr());
-				postdata.put("expectedFaqid", "");
-	        }
-	        
-	        JSONArray ja = new JSONArray();
-			ja.put(postdata);
-			
-			/*boolean isEmptymessagetype = interaction.getMessagetype() == null || interaction.getMessagetype().trim().length() == 0;
-			if(isEmptymessagetype)
-			{
-				interaction.setMessagetype("text");
-			}*/
-			
-			
-			
-			if(interactiongetfaqidstr.getIretrespondid()>0)
-			{
-				
-				
-				postret = hpr.setPostDataarray(serverUrl+"/response/update/expectedFaqid",ja);
-				
-				
-				System.out.println("post return is : "+ postret);
-				
-				jsonObject = new JSONObject(postret);
-				
-				if(validatejson.isJSONValidstandard(postret))
-				{
-					//error message from icontek : ERROR
-					String errMessage ="Something went wrong";
-					if(jsonObject.has("ERROR"))
-					{
-						errMessage = jsonObject.getString("ERROR");
-					}
-					
-					if(jsonObject.has("STATUS"))
-					{
-						if(jsonObject.getString("STATUS").equals("OK"))
-						{
-							//interaction.setIstrain(0);
-							//lastinsertuserid =intMapper.Update(interaction);
-							lastinsertuserid =intMapper.Updateonly(interaction);
-						}
-						else
-						{
-							throw new CoreException(HttpStatus.NOT_MODIFIED, "Error : " + errMessage);
-						}
-					}
-					else
-					{
-						throw new CoreException(HttpStatus.NOT_MODIFIED, "Error : " +  errMessage);
-					}
-				}
-				else
-				{
-					log.info("ERROR : " + postret);
-				}
-			}
-			else
-			{
-				if(interaction.getUserchannelid()>0)
-				{
-					UserProfileMapper usrpMapper = sqlSession.getMapper(UserProfileMapper.class);
-					UserProfile userprofile = new UserProfile();
-					userprofile = usrpMapper.findByuserchannelid(interaction.getUserchannelid());
-					if (userprofile == null) {
-			            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no applicationid found.");
-						System.out.print("No User Channel is found");
-			        }
-					else
-					{
-						interaction.setUpdatedby(userprofile.getUserid());
-					}
-				}
-				
-				lastinsertuserid =intMapper.Updateonly(interaction);
-			}
-			
-			//this.retquestionid = retquestionid;
-			this.postret = postret;
-			this.lastinsertuserid = lastinsertuserid;
-			
-			log.info("update data");
-			
-	        
-			
-			
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return postret;
+		return lastinsertuserid;
 	}
 	
 	
@@ -2867,70 +2501,6 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		return postret;
 	}
 	
-	
-	private String saveIcontekupdatedelete(JSONObject postdata,String engAccesstoken
-			,Interaction interaction,String postret
-			,String lastinsertuserid,InteractionMapper intMapper
-			,Interaction interactiongetfaqidstr
-			,EngineCredential result,JSONObject jsonObject,String serverUrl,String updatedid)
-	{
-		try {
-			
-			//postdata.put("access_token", engAccesstoken);
-	        //postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-        	if(interactiongetfaqidstr.getIretrespondid()>0)
-        	{
-        		postdata.put("id", interactiongetfaqidstr.getIretrespondid());
-        	}
-	        postdata.put("responseId", interactiongetfaqidstr.getFaqidstr());
-			postdata.put("expectedFaqid", "");
-			
-
-			
-			JSONArray ja = new JSONArray();
-			ja.put(postdata);
-			
-			postret = hpr.setPostDataarray(serverUrl+"/response/update/expectedFaqid",ja);
-			
-			
-			System.out.println("post return is : "+ postret);
-			
-			jsonObject = new JSONObject(postret);
-			
-			//error message from icontek : ERROR
-			String errMessage ="Something went wrong";
-			if(jsonObject.has("ERROR"))
-			{
-				errMessage = jsonObject.getString("ERROR");
-			}
-			
-			if(jsonObject.has("STATUS"))
-			{
-				if(jsonObject.getString("STATUS").equals("OK"))
-				{
-					interaction.setIsmanual(1);
-					updatedid = intMapper.Updatedelete(interaction);
-				}
-				else
-				{
-					throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-				}
-			}
-			else
-			{
-				throw new CoreException(HttpStatus.NOT_MODIFIED, errMessage);
-			}
-			
-			log.info("update data");
-			
-			
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return updatedid;
-	}
 	
 
 	private String saveRoocengineupdatedelete(JSONObject postdata,String engAccesstoken
@@ -3112,10 +2682,10 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	
 	/*v3*/
 	
-	public String Save(Interaction interaction) {
+	public Integer Save(Interaction interaction) {
 		System.out.println("user save : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		String lastinsertuserid="0";
+		Integer lastinsertuserid=0;
 		String postret = "";
 		Intent intent = new Intent();
 		Intent intentexp = new Intent();
@@ -3326,11 +2896,11 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 	        JSONObject postdata = new JSONObject();
 	        
 	        
-	        	postret = this.saveRoocenginecreate(postdata, engAccesstoken, getMapview, interaction
+	        lastinsertuserid = this.saveRoocenginecreate(postdata, engAccesstoken, getMapview, interaction
 	        			, getreturnintentid, getexpreturnintentid, postret, serverUrl, lastinsertuserid
 	        			, intMapper);
 	        
-	        
+	        System.out.println("====postret : "+postret);
 			
 		}catch(PersistenceException e){
 			log.debug(e + "error get user data");
@@ -3338,7 +2908,7 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 		} finally{
 			sqlSession.close();
 		}
-		return postret;
+		return lastinsertuserid;
 	}
 
 	@Override
@@ -3375,6 +2945,80 @@ public class InteractionMapperImpl  extends BaseDAO implements InteractionMapper
 			sqlSession.close();
 		}
 		return ec;
+	}
+
+	@Override
+	public Integer Savequestion(Question question) {
+		System.out.println("Question save : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int lastinsertuserid=0;
+		try{
+			InteractionMapper mlMapper = sqlSession.getMapper(InteractionMapper.class);
+			//userrole = 
+			lastinsertuserid =mlMapper.Savequestion(question);
+			log.info("insert question data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get question data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return lastinsertuserid;
+	}
+
+	@Override
+	public Question findGetQuestion(String question, Integer intentid) {
+		System.out.println("Question List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		Question ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findGetQuestion(question,intentid);
+			log.info("getdir data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findGetQuestion data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return (Question) ec;
+	}
+
+	@Override
+	public Interaction findlistinteractionbyquestions(String question, Integer expectedintentid) {
+		System.out.println("Question List : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		Interaction ec = null;
+		try{
+			InteractionMapper ecMapper = sqlSession.getMapper(InteractionMapper.class);
+			ec = ecMapper.findlistinteractionbyquestions(question,expectedintentid);
+			log.info("getdir data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get findGetQuestion data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return (Interaction) ec;
+	}
+
+	@Override
+	public Integer Updatequestionhasdetail(Question question) {
+		System.out.println("Question save : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		int lastinsertuserid=0;
+		try{
+			InteractionMapper mlMapper = sqlSession.getMapper(InteractionMapper.class);
+			//userrole = 
+			lastinsertuserid =mlMapper.Updatequestionhasdetail(question);
+			log.info("insert Updatequestionhasdetail data");
+		}catch(PersistenceException e){
+			log.debug(e + "error get Updatequestionhasdetail data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return lastinsertuserid;
 	}
 	
 	/*v3*/

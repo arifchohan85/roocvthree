@@ -53,7 +53,7 @@ public class UserProfile extends Base{
 	private String rolename;
 	
 
-	
+	private int isapproved;
 
 	
 	public String getPassword() {
@@ -169,4 +169,15 @@ public class UserProfile extends Base{
 	public void setRoleid(int roleid) {
 		this.roleid = roleid;
 	}
+
+	public int getIsapproved() {
+		return isapproved;
+	}
+
+	public void setIsapproved(int isapproved) {
+		this.isapproved = isapproved;
+	}
+	
+	
+	
 }

@@ -124,5 +124,10 @@ public class UserProfileService {
 		//return 
 		appMapper.Updatefromuserinactive(userprofile);
 	}
+	
+	public UserProfileAttribute getCreateattr(String tenant,UserProfileAttribute userprofileattribute) {
+		UserProfileMapper appMapper = new UserProfileMapperImpl(tenant);
+		return appMapper.Saveattr(userprofileattribute);
+	}
 
 }

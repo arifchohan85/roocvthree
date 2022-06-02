@@ -477,7 +477,7 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 	public void Updatefromuserinactive(UserProfile userprofile) {
 		System.out.println("userprofile update : " + this.tenantIdentifier);
 		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
-		
+		//UserProfile userprofile = null;
 		try{
 			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
 			//userrole = 
@@ -489,6 +489,26 @@ public class UserProfileMapperImpl extends BaseDAO implements UserProfileMapper{
 		}finally{
 			sqlSession.close();
 		}
+		
+	}
+
+	@Override
+	public UserProfileAttribute Saveattr(UserProfileAttribute userprofileattribute) {
+		System.out.println("Saveattr update : " + this.tenantIdentifier);
+		sqlSession = super.getInstance(this.tenantIdentifier).openSession();
+		
+		try{
+			UserProfileMapper userprofileMapper = sqlSession.getMapper(UserProfileMapper.class);
+			//userrole = 
+			userprofileMapper.Saveattr(userprofileattribute);
+			log.info("profile data");
+		}catch(PersistenceException e){
+			log.debug(e + "error insert userprofileattribute data");
+			e.printStackTrace();
+		}finally{
+			sqlSession.close();
+		}
+		return userprofileattribute;
 		
 	}
 

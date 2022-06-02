@@ -218,7 +218,7 @@ public interface InteractionMapper {
 			" on a.customerchannelid=ch.id" +
 			" inner join ms_eng_intent intict \n" + 
 			" on a.answerintentid=intict.iretquestionid"
-			+ " WHERE a.istrain=1 AND a.intentid = #{intentid}")
+			+ " WHERE (a.istrain=1 OR a.istrain=0) AND a.intentid = #{intentid}")
     public List<Interaction> findInteractionintent(Integer intentid);
 	
 	/*@Select("SELECT a.*,b.question as intentname,u.username as username,coalesce(ch.name, '') as customername,intict.question as answerintentname \n" + 
@@ -339,7 +339,7 @@ public interface InteractionMapper {
 			" on a.updatedby=u.userid\n " + 
 			" left join channel.user ch \n " + 
 			" on a.customerchannelid=ch.id\n " + 
-			" WHERE a.istrain=1 AND a.expectedintentid =#{expectedintentid} " + 
+			" WHERE (a.istrain=1 OR a.istrain=0) AND a.expectedintentid =#{expectedintentid} " + 
 			" ; ")
     public List<Interaction> findInteractionexpectedintentid(Integer expectedintentid);
 	
@@ -377,7 +377,7 @@ public interface InteractionMapper {
 			" on a.customerchannelid=ch.id" +
 			" left join ms_eng_intent intict \n" + 
 			" on a.answerintentid=intict.iretquestionid"
-			+ " WHERE a.istrain=1 "
+			+ " WHERE (a.istrain=1 OR a.istrain=0) "
 			+ " ; ")
     public List<Interaction> extractInteractionexpectedintentid();
 	
@@ -412,13 +412,13 @@ public interface InteractionMapper {
 	
 	@SelectKey(statement = "currval('interactionid')", keyProperty = "interactionid", before = false , resultType = int.class)
 	@Select("Insert into tr_eng_interaction(intentid,faqidstr,expectedintentid,question,minconfidence,maxconfidence"
-			+ ",active,iretrespondid,isupdated,istrain,confidencelevel,qid,ismanual,messagetype"
+			+ ",active,iretrespondid,isupdated,istrain,confidencelevel,qid,ismanual,messagetype,questionid"
 			+ ",createdby,updatedby,createdtime,updatedtime) "
 			+ "VALUES (#{intentid},#{faqidstr},#{expectedintentid},#{question},#{minconfidence},#{maxconfidence}"
-			+ ",#{active},#{iretrespondid},#{isupdated},#{istrain},#{confidencelevel},#{qid},#{ismanual},#{messagetype}"
+			+ ",#{active},#{iretrespondid},#{isupdated},#{istrain},#{confidencelevel},#{qid},#{ismanual},#{messagetype},#{questionid}"
 			+ ",#{createdby},#{updatedby},#{createdtime},#{updatedtime}) "
 			+ " RETURNING interactionid") //,#{createdBy},#{updateBy}
-	public String Save(Interaction interaction);
+	public Integer Save(Interaction interaction);
 	
 	@SelectKey(statement = "currval('interactionid')", keyProperty = "interactionid", before = false , resultType = int.class)
 	@Select("Insert into tr_eng_interaction(intentid,faqidstr,expectedintentid,question,minconfidence,maxconfidence"
@@ -451,11 +451,12 @@ public interface InteractionMapper {
 	@Select("Update tr_eng_interaction SET expectedintentid=#{expectedintentid}"
 			+ " ,isupdated=#{isupdated}"
 			+ " ,istrain=#{istrain}"
+			+ " ,questionid=#{questionid}"
 			+ " ,updatedby=#{updatedby}"
 			+ " ,updatedtime=#{updatedtime}"
 			+ " WHERE interactionid=#{interactionid} "
 			+ " RETURNING interactionid")
-    public String Update(Interaction interaction);
+    public Integer Update(Interaction interaction);
 	
 	@Select("Update tr_eng_interaction SET expectedintentid=#{expectedintentid}"
 			+ " ,isupdated=#{isupdated}"
@@ -517,24 +518,49 @@ public interface InteractionMapper {
 	/* v3 */
 	
 	@Select(" SELECT a.interactionid as id,a.intentid as intentId" +
-			" ,a.question as question,a.createdtime as as createdOn" + 
+			" ,a.question as question,a.createdtime as createdOn" + 
 			" ,u.name as createdBy\n " + 
 			" FROM tr_eng_interaction a\n " + 
 			" left join ms_app_userprofile u\n " + 
 			" on a.createdby=u.userid\n " + 
-			" WHERE a.istrain=1 AND a.expectedintentid =#{expectedintentid} " + 
+			" WHERE  a.expectedintentid =#{expectedintentid} " + 
 			" ; ")
     public List<InteractionResponse> findlistquestionbyexpectedintentid(Integer expectedintentid);
 	
 	@Select(" SELECT a.interactionid as id,a.intentid as intentId" +
-			" ,a.question as question,a.createdtime as as createdOn" + 
+			" ,a.question as question,a.createdtime as createdOn" + 
 			" ,u.name as createdBy\n " + 
 			" FROM tr_eng_interaction a\n " + 
 			" left join ms_app_userprofile u\n " + 
 			" on a.createdby=u.userid\n " + 
-			" WHERE a.istrain=1  " + 
+			"   " + 
 			" ; ")
     public List<InteractionResponse> findlistquestions();
+	
+	@SelectKey(statement = "currval('questionid')", keyProperty = "questionid", before = false , resultType = int.class)
+	@Select("Insert into ms_mst_question(question,intentid,hasdetail "
+			+ ") "
+			+ "VALUES (#{question},#{intentid},#{hasdetail}) "
+			+ " RETURNING questionid") //,#{createdBy},#{updateBy}
+	public Integer Savequestion(Question question);
+	
+	@Select("SELECT * " +
+			 " FROM ms_mst_question " +
+			 " WHERE question =#{question} AND intentid =#{intentid} ORDER BY questionid asc limit 1" + 
+			 " ;")
+ public Question findGetQuestion(@Param("question") String question,@Param("intentid") Integer intentid);
+	
+	@Select(" SELECT *" +
+			" FROM tr_eng_interaction  " + 
+			" WHERE question =#{question} AND expectedintentid =#{expectedintentid} ORDER BY interactionid asc limit 1" + 
+			"   " + 
+			" ; ")
+    public Interaction findlistinteractionbyquestions(@Param("question") String question,@Param("expectedintentid") Integer expectedintentid);
+	
+	@Select("Update ms_mst_question SET hasdetail=#{hasdetail} "
+			+ " WHERE questionid=#{questionid} "
+			+ " RETURNING questionid")
+    public Integer Updatequestionhasdetail(Question question);
 	
 	/* v3 */
 	

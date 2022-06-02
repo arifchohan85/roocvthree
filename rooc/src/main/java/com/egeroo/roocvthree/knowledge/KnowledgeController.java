@@ -7,11 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +41,8 @@ public class KnowledgeController {
 	TrailingRecordBase trb = new TrailingRecordBase();
 	
 	@RequestMapping(method=RequestMethod.POST,value="/create")
-	public KnowledgeResponse getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
+	public String getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
+	//public KnowledgeResponse getCreate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -53,12 +55,13 @@ public class KnowledgeController {
 		}
 		//trb.SetTrailRecord(token,obj);
 		//obj.setToken(token);
-		KnowledgeResponse kres = service.getCreate(headers.get("tenantID").get(0),obj,token);
-		return kres;
+		JSONObject kres = service.getCreate(headers.get("tenantID").get(0),obj,token);
+		return kres.toString();
 	}
 	
-	@RequestMapping(method=RequestMethod.POST,value="/update")
-	public KnowledgeResponse getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
+	@RequestMapping(method=RequestMethod.PUT,value="/update")
+	//public KnowledgeResponse getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
+	public String getUpdate(@RequestHeader HttpHeaders headers,HttpServletRequest request,@Valid @RequestBody KnowledgeRequest obj) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -71,8 +74,8 @@ public class KnowledgeController {
 		}
 		//trb.SetTrailRecord(token,obj);
 		//obj.setToken(token);
-		KnowledgeResponse kres = service.getUpdate(headers.get("tenantID").get(0),obj,token);
-		return kres;
+		JSONObject kres = service.getUpdate(headers.get("tenantID").get(0),obj,token);
+		return kres.toString();
 	}
 	
 	@RequestMapping(method=RequestMethod.GET,value="/knowledgetreebak05032022")
@@ -148,8 +151,8 @@ public class KnowledgeController {
 	}
 	
 	//@RequestMapping(method=RequestMethod.DELETE,value="/question/delete")
-	@RequestMapping(method=RequestMethod.DELETE,value="/question")
-	public InteractionResponse getDelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,int questionId) {
+	@RequestMapping(method=RequestMethod.DELETE,value="/question/{questionId}")
+	public InteractionResponse getDelete(@RequestHeader HttpHeaders headers,HttpServletRequest request,@PathVariable int questionId) {
 		String token ="";
     	boolean isEmpty = request.getHeader("access_token") == null || request.getHeader("access_token").trim().length() == 0;
 		if(isEmpty)
@@ -177,8 +180,10 @@ public class KnowledgeController {
 	//
 	//@GetMapping(path = "/questions", consumes = MediaType.APPLICATION_JSON_VALUE)
 	//@RequestMapping(method=RequestMethod.GET,value="/questionsbyintent")
-	@RequestMapping(method=RequestMethod.GET ,value = "/questions", params = "intentId")
-	public List<InteractionResponse> getQuestions(@RequestHeader HttpHeaders headers,HttpServletRequest request,int intentId) {
+	//@RequestMapping(method=RequestMethod.GET ,value = "/questions", params = "intentId")
+	//@RequestMapping(method=RequestMethod.GET ,value = "/questions", params = "intentId")
+	@RequestMapping(method=RequestMethod.GET,value="/questions/{intentId}")
+	public List<InteractionResponse> getQuestions(@RequestHeader HttpHeaders headers,HttpServletRequest request,@PathVariable int intentId) {
 		List<InteractionResponse> retData = intservice.getListquestionsbyexpectedintentid(headers.get("tenantID").get(0),intentId);
 		return retData;
 	}

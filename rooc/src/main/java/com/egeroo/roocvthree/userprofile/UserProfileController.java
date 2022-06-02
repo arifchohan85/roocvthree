@@ -517,10 +517,59 @@ public class UserProfileController {
 			if(usrchnlID>0)
 			{
 				obj.setUserchannelid(usrchnlID);
+				
+				int isNeeduserapproval =0;
+				//RoocConfig roocconfig = new RoocConfig();
+				roocconfig = rcservice.findByconfigkey(headers.get("tenantID").get(0),"isNeeduserapproval");
+				if (roocconfig == null) {
+		            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no configuration for isUse3des found.");
+		        }
+				else
+				{
+					isNeeduserapproval = Integer.parseInt(roocconfig.getConfigvalue());
+				}
+				
+				int isApproved=0;
+				if(isNeeduserapproval==1)
+				{
+					isApproved=0;
+				}
+				else
+				{
+					isApproved=1;
+				}
+
+				obj.setIsapproved(isApproved);
+				
+				
 				UserProfile retData = service.getCreate(headers.get("tenantID").get(0),obj);
 				if(retData.getUserprofileid()>0)
 				{
 					//throw new CoreException(HttpStatus.OK, "Data Saved");
+//					int isNeeduserapproval =0;
+//					//RoocConfig roocconfig = new RoocConfig();
+//					roocconfig = rcservice.findByconfigkey(headers.get("tenantID").get(0),"isNeeduserapproval");
+//					if (roocconfig == null) {
+//			            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no configuration for isUse3des found.");
+//			        }
+//					else
+//					{
+//						isNeeduserapproval = Integer.parseInt(roocconfig.getConfigvalue());
+//					}
+//					
+//					int allowuserapproval=0;
+//					if(isNeeduserapproval==1)
+//					{
+//						allowuserapproval=1;
+//					}
+//					UserProfileAttribute upattr = new UserProfileAttribute();
+//					upattr.setIsapproved(allowuserapproval);
+//					upattr.setUserprofileid(retData.getUserprofileid());
+//					
+//					UserProfileAttribute retDataattr = service.getCreateattr(headers.get("tenantID").get(0),upattr);
+//					System.out.println(retDataattr);
+					
+					
 					return retData;
 				}
 				else
@@ -1145,10 +1194,11 @@ public class UserProfileController {
 		
 		boolean isEmptypswd = obj.getPassword() == null || obj.getPassword().trim().length() == 0;
 		
+		RoocConfig roocconfig = new RoocConfig();
 		if(!isEmptypswd)
 		{
 			int isUse3des =0;
-			RoocConfig roocconfig = new RoocConfig();
+			
 			roocconfig = rcservice.findByconfigkey(headers.get("tenantID").get(0),"isUse3des");
 			if (roocconfig == null) {
 	            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no configuration for isUse3des found.");
@@ -1200,6 +1250,32 @@ public class UserProfileController {
 			token = headers.get("access_token").get(0);
 		}
 		trb.SetTrailRecord(token,obj);
+		
+		
+		int isNeeduserapproval =0;
+		//RoocConfig roocconfig = new RoocConfig();
+		roocconfig = rcservice.findByconfigkey(headers.get("tenantID").get(0),"isNeeduserapproval");
+		if (roocconfig == null) {
+            //throw new CoreException(HttpStatus.EXPECTATION_FAILED, "no configuration for isUse3des found.");
+        }
+		else
+		{
+			isNeeduserapproval = Integer.parseInt(roocconfig.getConfigvalue());
+		}
+		
+		int isApproved=0;
+		if(isNeeduserapproval==1)
+		{
+			//isApproved=0;
+			isApproved=obj.getIsapproved();
+		}
+		else
+		{
+			isApproved=1;
+		}
+
+		obj.setIsapproved(isApproved);
+		
 		UserProfile retData = service.getUpdate(headers.get("tenantID").get(0),obj);
 		if(retData.getUserprofileid()>0)
 		{

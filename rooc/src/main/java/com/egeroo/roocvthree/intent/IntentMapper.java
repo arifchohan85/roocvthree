@@ -16,8 +16,10 @@ public interface IntentMapper {
 	@Select("SELECT * FROM ms_eng_intent ORDER BY intentid")
     public List<Intent> findAll();
 
-	@Select("SELECT * FROM ms_eng_intent where active=${active} ORDER BY intentid")
-    public List<Intent> findAllV3(@Param("active") int active);
+	//where active=${active}
+	@Select("SELECT * FROM ms_eng_intent  ORDER BY intentid")
+    public List<Intent> findAllV3();
+	//@Param("active") int active
 
 	@Select("SELECT intentid,question FROM ms_eng_intent ORDER BY intentid")
     public List<Intent> findIntent();
@@ -82,7 +84,6 @@ public interface IntentMapper {
 			+ " ,question=#{question}"
 			+ " ,answer=#{answer}"
 			+ " ,iretquestionid=#{iretquestionid}"
-			+ " ,description=#{description}"
 			+ " ,updatedby=#{updatedby}"
 			+ " ,updatedtime=#{updatedtime}"
 			+ " WHERE intentid=#{intentid} "

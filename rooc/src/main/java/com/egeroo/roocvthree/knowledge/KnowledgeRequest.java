@@ -29,7 +29,7 @@ public class KnowledgeRequest implements Serializable{
 	public void setIntentName(String IntentName) {
 		this.intentName = IntentName;
 	}
-	public boolean isMultipleCondition() {
+	public boolean getMultipleCondition() {
 		return multipleCondition;
 	}
 	public void setMultipleCondition(boolean multipleCondition) {

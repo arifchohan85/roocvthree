@@ -26,6 +26,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -831,6 +832,7 @@ public class HttpPostReq {
         return result.toString();
     }
 	
+	
 	public String setGetlocaldata(String restUrl,String tenantID,String token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
     {
 		
@@ -843,7 +845,7 @@ public class HttpPostReq {
 
 		    //HttpClient client = HttpClientBuilder.create().build();
 			HttpGet request = new HttpGet(restUrl);
-
+			//HttpDelete requestdel = new HttpDelete(restUrl);
 			// add request header
 			//request.addHeader("User-Agent", USER_AGENT);
 			//post.setHeader("User-Agent", USER_AGENT);
@@ -881,6 +883,55 @@ public class HttpPostReq {
         return result.toString();
     }
 
+	public String setDeletlocaldata(String restUrl,String tenantID,String token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException
+    {
+		
+		 SSLContextBuilder builder = new SSLContextBuilder();
+		    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+		            builder.build());
+		    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+		            sslsf).build();
+
+		    //HttpClient client = HttpClientBuilder.create().build();
+			//HttpGet request = new HttpGet(restUrl);
+			HttpDelete request = new HttpDelete(restUrl);
+			// add request header
+			//request.addHeader("User-Agent", USER_AGENT);
+			//post.setHeader("User-Agent", USER_AGENT);
+			/*request.setHeader("AUTHORIZATION", token);
+			request.setHeader("Content-Type", "application/x-www-form-urlencoded");//application/x-www-form-urlencoded // application/json
+			request.setHeader("Accept", "application/json;charset=UTF-8");
+			request.setHeader("X-Stream" , "true");*/
+			
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+			request.setHeader("Accept", "application/json;charset=UTF-8");
+			request.setHeader("X-Stream" , "true");
+			request.setHeader("tenantID" , tenantID);
+			request.setHeader("Authorization" , token);
+			HttpResponse response = httpclient.execute(request);
+			
+			System.out.println("\nSending 'DELETE' request to URL : " + restUrl);
+
+			System.out.println("Response Code : " 
+		                + response.getStatusLine().getStatusCode());
+			if(response.getStatusLine().getStatusCode() == 404)
+			{
+				throw new CoreException(HttpStatus.NOT_FOUND, "url/data not found.");
+			}
+
+			BufferedReader rd = new BufferedReader(
+				new InputStreamReader(response.getEntity().getContent()));
+
+			StringBuffer result = new StringBuffer();
+			String line = "";
+			while ((line = rd.readLine()) != null) {
+				result.append(line);
+			}
+
+            
+        return result.toString();
+    }
 
 	
 	
